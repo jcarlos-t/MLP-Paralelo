@@ -94,10 +94,9 @@ def tam_modelo(d=D_DEFAULT, h=H_DEFAULT):
     return d * h + h + h + 1
 
 # función de entrenamiento paralelo MLP
-def _worker(i, p, q, h, E, B, X_tr, y_tr, X_te, y_te, A, S, W, T_map, T_red, C_map, NIV, barrera):
+def _worker(i, p, q, h, E, B, X_tr, y_tr, X_te, y_te, A, S, W, T, NIV, barrera):
+    T[i * 3] = time.perf_counter()
     r0 = resource.getrusage(resource.RUSAGE_SELF)
-    c0 = time.process_time()
-    t0 = time.perf_counter()
     a_loc, s_loc, m_loc = float("-inf"), -1, None
     for s in range(i, q, p):
         m = entrenar_mlp(s, X_tr, y_tr, h=h, E=E, B=B)
@@ -110,11 +109,8 @@ def _worker(i, p, q, h, E, B, X_tr, y_tr, X_te, y_te, A, S, W, T_map, T_red, C_m
     S[i] = s_loc
     if m_loc is not None:
         Wv[i, :] = modelo_a_vector(m_loc)
-    T_map[i] = time.perf_counter() - t0
-    C_map[i] = time.process_time() - c0
-    NIV[i] = resource.getrusage(resource.RUSAGE_SELF).ru_nivcsw - r0.ru_nivcsw
     barrera.wait()
-    t1 = time.perf_counter()
+    T[i * 3 + 1] = time.perf_counter()
     for d in range(math.ceil(math.log2(p)) if p > 1 else 0):
         if i < math.ceil(p / 2 ** (d + 1)):
             j = 2 * i * 2 ** d
@@ -124,7 +120,8 @@ def _worker(i, p, q, h, E, B, X_tr, y_tr, X_te, y_te, A, S, W, T_map, T_red, C_m
                 S[j] = S[k]
                 Wv[j, :] = Wv[k, :]
         barrera.wait()
-    T_red[i] = time.perf_counter() - t1
+    T[i * 3 + 2] = time.perf_counter()
+    NIV[i] = resource.getrusage(resource.RUSAGE_SELF).ru_nivcsw - r0.ru_nivcsw
 
 def run(n, q, p, d=D_DEFAULT, h=H_DEFAULT, E=E_DEFAULT, B=1024, guardar=None):
     X_tr, y_tr, X_te, y_te = cargar_datos(n, d)
@@ -133,24 +130,30 @@ def run(n, q, p, d=D_DEFAULT, h=H_DEFAULT, E=E_DEFAULT, B=1024, guardar=None):
     A = ctx.Array("d", p, lock=False)
     S = ctx.Array("i", p, lock=False)
     W = ctx.RawArray("d", p * tam)
-    T_map = ctx.Array("d", p, lock=False)
-    T_red = ctx.Array("d", p, lock=False)
-    C_map = ctx.Array("d", p, lock=False)
+    T = ctx.Array("d", p * 3)
     NIV = ctx.Array("l", p, lock=False)
     barrera = ctx.Barrier(p)
     t0 = time.perf_counter()
-    procs = [ctx.Process(target=_worker, 
+    procs = [ctx.Process(target=_worker,
                          args=(i, p, q, h, E, B, X_tr, y_tr, X_te, y_te,
-                               A, S, W, T_map, T_red, C_map, NIV, barrera)) 
+                               A, S, W, T, NIV, barrera))
             for i in range(p)]
     for pr in procs: pr.start()
     for pr in procs: pr.join()
     t = time.perf_counter() - t0
+    enter = [T[i * 3] for i in range(p)]
+    map_end = [T[i * 3 + 1] for i in range(p)]
+    red_end = [T[i * 3 + 2] for i in range(p)]
+    t_spawn = max(enter) - t0
+    wall_map = max(map_end) - min(enter)
+    wall_red = max(red_end) - max(map_end)
     m_best = vector_a_modelo(np.frombuffer(W, dtype=np.float64)[:tam], d, h, S[0])
     if guardar:
         joblib.dump(m_best, guardar)
-    return {"version": "beta3", "n": n, "q": q, "p": p, "B": B or 0, "t_total": t, "t_map": max(T_map), "t_reduce": max(T_red), "acc": A[0], "seed": S[0],
-            "t_cpu_map": sum(C_map), "cpu_ratio": sum(C_map) / sum(T_map), "nivcsw": sum(NIV)}
+    return {"version": "beta3", "n": n, "q": q, "p": p, "B": B or 0, "t_total": t,
+            "t_map": wall_map, "t_reduce": wall_red, "t_spawn": t_spawn,
+            "t_other": t - t_spawn - wall_map - wall_red,
+            "acc": A[0], "seed": S[0], "nivcsw": sum(NIV)}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

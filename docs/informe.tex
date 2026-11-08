@@ -1,0 +1,442 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- PAQUETES ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}  
+\algdef{SE}[FOR]{ForPardo}{EndFor}[1]{\textbf{for} #1 \textbf{pardo}}{\textbf{end for}}
+\usepackage{float}
+
+% --- CONFIGURACIÓN DE MÁRGENES ---
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+
+% --- CONFIGURACIÓN PARA CÓDIGO (C++ y Python) ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4,
+    frame=single
+}
+\lstset{style=mystyle}
+
+\begin{document}
+
+% ==========================================
+%                 PORTADA
+% ==========================================
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    
+    % Encabezado institucional
+    {\Large \textbf{Universidad de Ingeniería y Tecnología }}\\[0.5cm]
+    {\large Curso: Computación Paralela y Distribuida }\\[1.5cm]
+    
+    % Espacio central para el logo
+    \vspace{1cm}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.4\textwidth]{utec-logo.jpg} 
+    \end{figure}
+    \vspace{1.5cm}
+    
+    % Título del proyecto
+    {\huge \textbf{Entrenamiento Paralelo de Redes Neuronales (MLP)}}\\[2cm]
+    
+    \vfill
+    
+    % Integrantes y Participación
+    \textbf{\Large Integrantes}\\[0.8cm]
+    
+    {\large
+    \textbf{Juan Carlos Ticlia Maqui} --- 100\% \\[0.3cm]
+    \textbf{Paulo Isael Miranda Barrientos} --- 100\% \\[0.3cm]
+    \textbf{Joseph Anderson Cose Rojas} --- 100\% \\[0.3cm]
+    }
+    
+    \vspace{1.5cm}
+    {\large \today}\\[1cm]
+\end{titlepage}
+
+% ==========================================
+%            CUERPO DEL INFORME
+% ==========================================
+
+% --- 1. INTRODUCCIÓN ---
+\section{Introducción}
+
+El presente informe detalla el desarrollo y análisis de un algoritmo de \textbf{Redes Neuronales}, enfocado en la optimización de los tiempos de entrenamiento de modelos de Machine Learning mediante técnicas de computación paralela. En el ámbito del aprendizaje profundo, las operaciones matemáticas centrales en las capas de una red neuronal ---específicamente en las fases de propagación hacia adelante (\textit{Forward Propagation}) y retropropagación (\textit{Backpropagation})--- se basan en la multiplicación de matrices. Para un solo modelo, cada época requiere multiplicaciones matriciales con costo $O(n \cdot d \cdot h)$, por lo que su entrenamiento a lo largo de $E = T_{max}$ épocas toma un tiempo $O(E \cdot n \cdot d \cdot h)$.
+
+En la práctica, para encontrar el modelo óptimo ($M^*$), se entrenar múltiples iteraciones de Perceptrones Multicapa (MLP) evaluando un conjunto de $q$ semillas aleatorias de inicialización. Realizar este proceso de forma estrictamente secuencial conlleva una complejidad algorítmica total definida por:
+
+$$T_s = O(q \cdot E \cdot n \cdot d \cdot h)$$
+
+\noindent donde $q$ es el número de semillas o modelos a evaluar, $E$ el número de épocas de entrenamiento, $n$ el número de muestras (\texttt{n\_samples}), $d$ el número de características de entrada, y $h$ el número de neuronas en la capa oculta. Realizar esta búsqueda secuencial resulta computacionalmente exhaustivo y poco eficiente.
+
+\textbf{Solución Planteada}
+
+Para abordar este cuello de botella, la solución propuesta consiste en el diseño de un algoritmo paralelo basado en el modelo PRAM (\textit{Parallel Random Access Machine}) y su posterior implementación en Python. Dado que el entrenamiento de cada modelo $M_s$ con una semilla $s$ específica es completamente independiente del resto de los entrenamientos, nos encontramos ante un problema ideal para aplicar paralelismo a nivel de tareas (\textit{Task Parallelism}). 
+
+La estrategia distribuye las iteraciones del bucle de entrenamiento entre un número variable de hilos computacionales ($p = 1, 2, 4, 8, 16, 32$). Cada hilo procesa un subconjunto del espacio de semillas $S$, entrena su respectivo modelo utilizando el conjunto completo de entrenamiento ($X_{train}, y_{train}$), y calcula la métrica de exactitud de forma concurrente. Finalmente, se aplica una operación de reducción en memoria compartida para identificar y retornar el modelo con la mayor exactitud ($A_{best}$). 
+
+Esta paralelización permitirá registrar y analizar de manera experimental los tiempos de ejecución para diferentes volúmenes de datos ($n = 5000, 10000, 20000, 40000$ muestras). A partir de estos registros, se calcularán las métricas de desempeño paralelo (\textit{Speedup} y Eficiencia), y se contrastarán gráficamente las curvas experimentales con la expresión teórica de complejidad para comprender a fondo la escalabilidad del sistema propuesto.
+
+% --- 2. MÉTODO ---
+\section{Método}
+
+A continuación, se presenta el algoritmo secuencial base, el cual sirve como punto de partida para evaluar el cuello de botella computacional:
+
+\begin{algorithm}[H]
+\caption{Entrenamiento secuencial de múltiples MLP con distintas semillas}
+\textbf{Data:} Datos $(X, y)$, semillas $S = \{0, 1, \dots, q - 1\}$, hiperparámetros $(\alpha, \eta, h, T_{max})$\\
+\textbf{Result:} Modelo $M^*$ con mayor exactitud
+\begin{algorithmic}[1]
+\State \textbf{/* División única de datos */}
+\State Dividir $(X, y)$ en $(X_{train}, y_{train})$ y $(X_{test}, y_{test})$
+\State \textbf{/* Inicialización */}
+\State $A_{best} \gets -\infty$
+\State $s^* \gets -1$
+\State $M^* \gets \emptyset$
+\State \textbf{/* Entrenamiento secuencial de múltiples MLP */}
+\For{\textbf{each} $s \in S$}
+    \State Inicializar generador aleatorio con semilla $s$
+    \State Construir modelo $M_s$ con parámetros $(\alpha, \eta, h, T_{max})$
+    \State Entrenar $M_s$ con $(X_{train}, y_{train})$
+    \State Calcular exactitud: $A_s \gets \text{accuracy}(M_s, X_{test}, y_{test})$
+    \If{$A_s > A_{best}$}
+        \State $A_{best} \gets A_s$
+        \State $s^* \gets s$
+        \State $M^* \gets M_s$
+    \EndIf
+\EndFor
+\State Guardar $M^*$ en archivo \texttt{mlp\_model.joblib}
+\State \Return $M^*$
+\end{algorithmic}
+\end{algorithm}
+
+
+Para optimizar este proceso, el diseño del algoritmo propuesto se fundamenta en el modelo PRAM (\textit{Parallel Random Access Machine}) \cite{jaja1992parallel}, en su variante CREW (\textit{Concurrent Read, Exclusive Write}). Esto permite que múltiples procesadores accedan a los mismos datos de entrenamiento simultáneamente (lectura concurrente), mientras que cada hilo escribe sus resultados (modelo y exactitud) en una posición de memoria única e independiente (escritura exclusiva).
+
+La estrategia de paralelización se divide en tres fases principales:
+\begin{itemize}
+    \item \textbf{Fase Secuencial inicial:} División del dataset original en conjuntos de entrenamiento y prueba, y su difusión a la memoria compartida.
+    \item \textbf{Fase Paralela de Mapeo (Map):} Las $q$ semillas se reparten entre los $p$ procesadores ($q \geq p$), de modo que cada procesador $P_i$ entrena secuencialmente su subconjunto $S_i = \{ s \in S : s \bmod p = i \}$ de $q/p$ semillas (asumiendo que $q$ es múltiplo de $p$ para garantizar un reparto equitativo) y conserva su mejor modelo local. Dado que el entrenamiento de cada $M_s$ es independiente entre semillas, la fase de mapeo constituye un caso de paralelismo \textit{embarrassingly parallel} \cite{farias2022parallelmlps}, un patrón ya explorado para el entrenamiento simultáneo de múltiples perceptrones multicapa.
+    \item \textbf{Fase Paralela de Reducción (Reduce):} Utilizando una estructura de árbol binario invertido, los $p$ procesadores comparan sus mejores exactitudes locales en pares durante $ \log_2 p$ iteraciones para encontrar el modelo óptimo. Esto basado en lo desarrollado en \cite{u2.2}.
+\end{itemize}
+
+El pseudocódigo formalizado del algoritmo PRAM se define sobre el espacio de semillas $S$:
+
+\begin{algorithm}[H]
+\caption{Entrenamiento Paralelo de Múltiples MLP (CREW PRAM)}
+\textbf{Data:} Datos $(X, y)$, semillas $S = \{0, 1, \dots, q-1\}$, hiperparámetros $(\alpha, \eta, h, T_{max})$\\
+\textbf{Result:} Modelo $M^*$ con mayor exactitud
+\begin{algorithmic}[1]
+\State Dividir $(X, y)$ en $(X_{train}, y_{train})$ y $(X_{test}, y_{test})$
+\State Difundir $(X_{train}, y_{train}, X_{test}, y_{test})$ a memoria compartida
+\Statex
+\State \textbf{/* Map: paralelismo de tareas sobre el espacio de semillas */}
+\ForPardo{\textbf{each} $s \in S$}
+    \State Inicializar generador aleatorio con semilla $s$
+    \State Construir modelo $M_s$ con hiperparámetros $(\alpha, \eta, h, T_{max})$
+    \State Entrenar\_MLP$(M_s, X_{train}, y_{train}, \alpha, \eta, h, T_{max})$
+    \State $A[s] \gets \text{accuracy}(M_s, X_{test}, y_{test})$
+    \State $M[s] \gets M_s$
+\EndFor
+\Statex
+\State \textbf{/* Reduce: árbol binario de comparación sobre los $q$ modelos */}
+\For{$d \gets 0$ \textbf{to} $\log_2 q - 1$}
+    \ForPardo{$i \gets 0$ \textbf{to} $q / 2^{d+1} - 1$ }
+        \State $j \gets 2i \cdot 2^d$
+        \State $k \gets (2i+1) \cdot 2^d$
+        \If{$A[j] < A[k]$}
+            \State $A[j] \gets A[k]$
+            \State $M[j] \gets M[k]$
+        \EndIf
+    \EndFor
+\EndFor
+\Statex
+\State $M^* \gets M[0]$
+\State Guardar $M^*$ en \texttt{mlp\_model.joblib}
+\State \Return $M^*$
+\end{algorithmic}
+\end{algorithm}
+
+El modelo PRAM (Algoritmo 2) asume conceptualmente una cantidad ilimitada de recursos computacionales, ejecutando $q$ hilos paralelos independientes (uno por semilla). Sin embargo, en un entorno de cómputo real los recursos hardware están acotados a $p$ procesos físicos ($p \le q$). 
+
+Para adaptar esta abstracción teórica a la práctica, la fase de \textit{Map} aplica una distribución por lotes (*batching*): las $q$ semillas se dividen equitativamente entre los $p$ procesos (asumiendo que $q$ es múltiplo de $p$). Cada proceso $P_i$ asume un subconjunto disjunto $S_i = \{ s \in S : s \bmod p = i \}$ y realiza una serie de \textbf{iteraciones secuenciales locales} sobre su lote de $q/p$ semillas. Durante este recorrido, cada proceso entrena los modelos asignados, evalúa su exactitud y conserva únicamente el mejor modelo local ($M_{loc}$) junto con su exactitud ($A_{loc}$).
+
+Al concluir la fase de \textit{Map}, los arreglos en memoria compartida $A$ y $M$ contienen únicamente $p$ elementos (el mejor resultado representativo de cada proceso) en lugar de $q$. En consecuencia, la fase de \textit{Reduce} en la práctica no opera sobre $q$ elementos, sino sobre una entrada de tamaño $p$: el árbol binario realiza $p/2^{d+1}$ comparaciones concurrentes en cada nivel $d$, a lo largo de $\log_2 p$ niveles (asumiendo que $p$ es potencia de 2). 
+
+Para complementar el algoritmo principal, se detallan a continuación las subrutinas de entrenamiento e inferencia, las cuales evidencian la carga computacional secuencial subyacente de las operaciones matriciales por cada época. Las ecuaciones de propagación hacia adelante y retropropagación siguen la formulación matricial estándar \cite{goodfellow2016deep}, donde $Z^{(l)} = A^{(l-1)}W^{(l)} + b^{(l)}$ representa la transformación lineal de cada capa.
+
+\begin{algorithm}[H]
+\caption{Entrenamiento del Perceptrón Multicapa (Entrenar\_MLP)}
+\textbf{Data:} Modelo $M_i$, Datos $X_{train}, y_{train}$, Hiperparámetros $\alpha, \eta, h, T_{max}$\\
+\textbf{Result:} Modelo $M_i$ con parámetros actualizados
+\begin{algorithmic}[1]
+    \State Obtener $n$ (número de muestras) y $d$ (número de entradas) de $X_{train}$
+    \State Inicializar aleatoriamente en $M_i$: $W^{(1)}$ tamaño $(d \times h)$ y $W^{(2)}$ tamaño $(h \times 1)$
+    \State Inicializar en $M_i$: $b^{(1)} = \mathbf{0}$ tamaño $(1 \times h)$ y $b^{(2)} = \mathbf{0}$ tamaño $(1 \times 1)$
+    \Statex
+    \For{$\text{época} \gets 1$ \textbf{to} $T_{max}$}
+        \State \textbf{/* Forward Propagation} \textbf{*/}
+        \State $Z1 \gets X_{train} \cdot W^{(1)} + b^{(1)}$
+        \State $A1 \gets \text{Activacion}(Z1)$
+        \State $Z2 \gets A1 \cdot W^{(2)} + b^{(2)}$ 
+        \State $A2 \gets \text{Activacion}(Z2)$
+        \Statex
+        \State \textbf{/* Backpropagation} \textbf{*/}
+        \State $Error \gets A2 - y_{train}$
+        \State $dZ2 \gets Error * \text{Derivada\_Activacion}(Z2)$
+        \State $dW2 \gets \frac{1}{n} (A1^T \cdot dZ2) + \alpha W^{(2)}$
+        \State $db2 \gets \frac{1}{n} \text{suma\_columnas}(dZ2)$
+        \Statex
+        \State $dZ1 \gets (dZ2 \cdot (W^{(2)})^T) * \text{Derivada\_Activacion}(Z1)$
+        \State $dW1 \gets \frac{1}{n} (X_{train}^T \cdot dZ1) + \alpha W^{(1)}$
+        \State $db1 \gets \frac{1}{n} \text{suma\_columnas}(dZ1)$
+        \Statex
+        \State \textbf{/* Actualización de Parámetros en} $M_i$ \textbf{*/}
+        \State $W^{(1)} \gets W^{(1)} - \eta \cdot dW1$
+        \State $b^{(1)} \gets b^{(1)} - \eta \cdot db1$
+        \State $W^{(2)} \gets W^{(2)} - \eta \cdot dW2$
+        \State $b^{(2)} \gets b^{(2)} - \eta \cdot db2$
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complejidad algorítmica de \texttt{Entrenar\_MLP}:}
+Las operaciones dominantes en el bucle principal son las multiplicaciones matriciales del \textit{forward pass} ($X_{train} \cdot W^{(1)}$) y \textit{backpropagation} ($X_{train}^T \cdot dZ1$). Dado que involucran dimensiones $(n \times d) \times (d \times h)$ y $(d \times n) \times (n \times h)$ respectivamente, ambas requieren $O(n \cdot d \cdot h)$ operaciones elementales. Las transformaciones intermedias (activaciones, derivadas, sesgos y actualización de pesos) poseen un costo de orden inferior $O(n \cdot h + d \cdot h)$.
+    
+Al repetir secuencialmente este proceso durante $T_{max} = E$ épocas sobre una inicialización previa de costo marginal $O(d \cdot h)$, la complejidad temporal total de la subrutina queda expresada como:
+$$T_{\text{Entrenar\_MLP}} = O(E \cdot n \cdot d \cdot h)$$
+
+\begin{algorithm}[H]
+\caption{Evaluación del modelo (accuracy)}
+\textbf{Data:} Modelo $M_i$ entrenado, Datos $X_{test}, y_{test}$\\
+\textbf{Result:} Proporción de aciertos sobre los datos de prueba
+\begin{algorithmic}[1]
+    \State Obtener $n_{test}$ (número de muestras de prueba) de $X_{test}$
+    \State \textbf{/* Forward Propagation sobre datos de prueba */}
+    \State $Z1 \gets X_{test} \cdot W^{(1)} + b^{(1)}$
+    \State $A1 \gets \text{Activacion}(Z1)$ 
+    \State $Z2 \gets A1 \cdot W^{(2)} + b^{(2)}$ 
+    \State $y_{pred} \gets \text{Activacion}(Z2)$
+    \Statex
+    \State $y_{hat} \gets (y_{pred} \ge 0.5)$
+    \State \textbf{/* Cálculo de la proporción de aciertos */}
+    \State $aciertos \gets \text{suma\_coincidencias}(y_{hat} == y_{test})$
+    \State \Return $\frac{aciertos}{n_{test}}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Complejidad algorítmica de \texttt{accuracy}:}
+La evaluación del modelo ejecuta únicamente la fase de inferencia sobre el conjunto de prueba de $n_{test}$ muestras. La carga computacional está dominada por la proyección inicial $X_{test} \cdot W^{(1)}$ de dimensión $(n_{test} \times d) \times (d \times h)$, requiriendo $O(n_{test} \cdot d \cdot h)$ operaciones. Como el cálculo subsiguiente de la capa de salida y la umbralización vectorial para determinar aciertos toman tiempos de orden menor ($O(n_{test} \cdot h)$ y $O(n_{test})$), la complejidad total es:
+$$T_{\text{accuracy}} = O(n_{test} \cdot d \cdot h)$$
+
+
+\subsection{Análisis de Métricas y Complejidad Teórica}
+
+Siguiendo el modelo de análisis PRAM, se derivan formalmente las métricas de rendimiento para el entrenamiento paralelo de múltiples Perceptrones Multicapa (MLP) mediante la descomposición en Trabajo, Span, Tiempo paralelo, Speedup y Eficiencia.
+
+\textbf{Parámetros del Problema}
+\begin{itemize}
+    \item $n$: Número de muestras en el conjunto de entrenamiento (\texttt{n\_samples}).
+    \item $d$: Número de características de entrada (\texttt{features}).
+    \item $h$: Número de neuronas en la capa oculta.
+    \item $E$: Número total de épocas de entrenamiento ($T_{max}$).
+    \item $q$: Número de semillas (modelos a entrenar), con $q \geq p$.
+    \item $p$: Número de procesadores.
+    \item $t_c$: Tiempo base para ejecutar una operación aritmética elemental (suma o multiplicación).
+\end{itemize}
+
+Dado que este estudio se centra en analizar el comportamiento del sistema al variar $q$, $p$ y $n$, los demás parámetros e hiperparámetros del modelo se mantienen constantes. Estos se agrupan en la constante:
+
+$$C = E \cdot d \cdot h \cdot t_c$$
+
+\noindent de modo que el costo computacional de entrenar un único modelo sobre $n$ muestras queda definido como $O(n \cdot C)$.
+
+\textbf{Tiempo secuencial ($T_s$)} \\
+El algoritmo secuencial entrena las $q$ semillas una tras otra. El costo de la evaluación $O(n_{test} \cdot d \cdot h)$ y de la comparación $O(1)$ por semilla es de orden menor frente al entrenamiento ($n \cdot C \gg n_{test}$), por lo que:
+$$T_s = O(q \cdot n \cdot C)$$
+
+\textbf{Trabajo ($W$)} \\
+El trabajo total del algoritmo paralelo es la suma de las operaciones de todos los procesadores: $q$ entrenamientos más $q - 1$ comparaciones. El trabajo no depende de cómo se reparte entre procesadores:
+$$W = O(q \cdot n \cdot C + q) = O(q \cdot n \cdot C)$$
+
+\textbf{Span ($T_\infty$)} \\
+El Span (camino crítico) es el tiempo con un número ilimitado de procesadores. Está limitado por dos componentes secuenciales:
+\begin{enumerate}
+    \item \textbf{Entrenamiento de un modelo:} las épocas no se pueden paralelizar para un mismo modelo, pues cada época depende de los pesos actualizados en la anterior: $O(n \cdot C)$.
+    \item \textbf{Reducción:} el árbol binario sobre $q$ resultados requiere $O(\log q)$ pasos \cite{jaja1992parallel}.
+\end{enumerate}
+$$T_\infty = O(n \cdot C + \log q)$$
+
+\textbf{Tiempo Paralelo ($T_p$)} \\
+Aplicando formalmente el Teorema de Brent, el tiempo paralelo $T_p$ al utilizar $p$ procesadores está acotado superiormente por la combinación del Trabajo distribuido y el Span: $T_p = O\left(\frac{W}{p} + T_\infty\right)$. Sustituyendo las expresiones teóricas se obtiene:
+
+$$T_p = O\left(\frac{q \cdot n \cdot C}{p} + n \cdot C + \log q\right) = O\left(\frac{q \cdot n \cdot C}{p} + \log p\right)$$
+
+El término $\log q$ del Span describe un escenario idealizado con procesadores ilimitados ($p = q$). Sin embargo, en un entorno acotado a $p$ recursos físicos, la fase de \textit{Map} procesa secuencialmente los bloques de $q/p$ semillas por procesador, consolidando el conjunto inicial de $q$ modelos a solo $p$ candidatos locales. De este modo, la fase paralela de \textit{Reduce} procesa una entrada de tamaño $p$, cambiando la cota de la reducción de $\log q$ a $\log p$. Asimismo, dado que el número de semillas es al menos igual al de procesadores ($q \ge p$, lo que implica $\frac{q}{p} \ge 1$), el costo secuencial de entrenar una red ($n \cdot C$) proveniente del Span resulta dominado y absorbido matemáticamente por el término de mapeo distribuido $\frac{q \cdot n \cdot C}{p}$.
+
+\textbf{Speedup ($S_p$)} \\
+$$S_p = \frac{T_s}{T_p} = \frac{q \cdot n \cdot C}{\frac{q}{p} \cdot n \cdot C + \log p} = \frac{p}{1 + \dfrac{p \log p}{q \cdot n \cdot C}}$$
+
+\textbf{Eficiencia ($E_f$)} \\
+$$E_f = \frac{S_p}{p} = \frac{1}{1 + \dfrac{p \log p}{q \cdot n \cdot C}}$$
+La eficiencia tiende a 1 cuando el cómputo total $q \cdot n \cdot C$ domina sobre el costo de la reducción $p \log p$.
+
+\subsubsection{Escalabilidad}
+
+\begin{itemize}
+    \item \textbf{Escalabilidad Fuerte ($q$ y $n$ fijos, $p$ creciente):}\\
+    Mientras $p \le q$, el cómputo total de entrenamiento $q \cdot n \cdot C$ domina holgadamente sobre la fase de reducción $p \log p$, garantizando una aceleración casi lineal ($S_p \approx p$) y una eficiencia óptima ($E_f \approx 1$). Sin embargo, si el problema es pequeño ($q$ y $n$ reducidos) y $p$ aumenta considerablemente, la sobrecarga del árbol de reducción cobra mayor peso relativo. Esto provoca un decaimiento progresivo de la eficiencia ($E_f \to 0$) y la saturación del Speedup máximo alcanzable.
+
+    \item \textbf{Escalabilidad Débil ($q$ adaptable según $p$):}\\
+    Para mantener la eficiencia constante ($E_f = \text{constante}$) al aumentar $p$, el volumen de trabajo total debe escalar en la misma proporción que el costo de la reducción:
+    $$E_f = \frac{1}{1 + \dfrac{p \log p}{q \cdot n \cdot C}} = \text{cte} \iff \frac{p \log p}{q \cdot n \cdot C} = \text{cte} \iff q \cdot n \cdot C \propto p \log p$$
+
+    Con $C$ y $n$ fijos, la condición teórica estricta exige que el número total de semillas crezca a un ritmo ligeramente lineal:
+    $$q \propto p \log p$$
+\end{itemize}
+
+\textbf{Impacto del tamaño del dataset ($n$) }
+
+Un aspecto fundamental del diseño propuesto es que el paralelismo se aplica a nivel de tareas (sobre el espacio de semillas $q$) y no sobre la partición del dataset ($n$). Dado que cada procesador procesa el conjunto completo de $n$ muestras de manera independiente, el crecimiento de $n$ influye de manera determinante en el rendimiento paralelo:
+
+\begin{enumerate}
+    \item \textbf{Aumento de la densidad de cómputo:} Al incrementar $n$, el costo computacional de entrenar cada modelo ($O(n \cdot C)$) crece de forma lineal. Esto aumenta la grano-granularidad del trabajo en cada hilo, diluyendo el peso relativo del overhead de sincronización y reducción ($O(\log p)$). En consecuencia, un $n$ elevado desplaza el punto de saturación y permite mantener eficiencias elevadas incluso con un número alto de procesadores $p$.
+
+    \item \textbf{Estabilizador de eficiencia en la configuración práctica ($q \propto p$):} En escenarios experimentales donde las semillas escalan linealmente con los procesadores ($q \propto p$, un número fijo de semillas por proceso), la eficiencia se expresa como:
+    $$E_f = \frac{1}{1 + \dfrac{\log p}{n \cdot C}}$$
+    En este caso, la pequeña pérdida de eficiencia logarítmica ($\log p$) puede ser completamente compensada si el tamaño del dataset crece a un ritmo equivalente ($n \propto \log p$). Esto demuestra que el volumen de datos $n$ actúa como un factor amortiguador frente al costo de reducción, mejorando la escalabilidad general del sistema.
+\end{enumerate}
+
+\subsubsection*{Consideraciones de Implementación}
+
+El modelo PRAM teórico plantea un número de semillas $q$ independiente del número de procesadores $p$, con distribución de semillas según $s \bmod p$ y la condición de que $q$ sea múltiplo de $p$ para facilitar el análisis teórico. Esto permite un análisis completo de escalabilidad fuerte y débil con respecto a $q$.
+
+Sin embargo, para la experimentación práctica del presente proyecto, se utiliza también la configuración $q = p$ (una semilla por procesador), por las siguientes razones:
+\begin{itemize}
+    \item Coincide con el Algoritmo 1 del enunciado original ($S = \{0, 1, \dots, p-1\}$)
+    \item Simplifica la implementación sin perder la validez conceptual del análisis
+    \item Permite verificar la eficiencia del paralelismo en condiciones prácticas
+\end{itemize}
+
+Esta configuración corresponde a un análisis de \textit{escalabilidad débil} (el tamaño del problema crece con los recursos) y permite estudiar el impacto del tamaño del dataset ($n$) en el rendimiento del paralelismo.
+
+\textbf{Caso particular de implementación ($q = p$):}
+
+Para la configuración experimental donde $q = p$, las expresiones de complejidad se simplifican a:
+
+$$T_s = O(p \cdot n \cdot C)$$
+$$T_p = O(n \cdot C + \log p)$$
+$$S_p = \frac{p}{1 + \dfrac{\log p}{n \cdot C}}$$
+$$E_f = \frac{1}{1 + \dfrac{\log p}{n \cdot C}}$$
+
+En este caso, la eficiencia tiende a 1 cuando $n \cdot C \gg \log p$, lo que confirma que el paralelismo aprovecha mejor los recursos con datasets grandes. Esta expresión será verificada experimentalmente variando $n_{samples} = \{5000, 10000, 20000, 40000\}$.
+
+
+\end{itemize}
+
+
+\subsection{Estrategia de Experimentación}
+
+Para verificar el análisis teórico y cumplir con los requisitos del enunciado, se plantea la siguiente estrategia de experimentación:
+
+\textbf{Análisis teórico de escalabilidad:}
+\begin{itemize}
+    \item El análisis teórico se centra en la escalabilidad con respecto a $q$ (número de semillas), que es la variable que realmente se distribuye entre procesadores en el modelo PRAM.
+    \item Se mantiene la condición $q$ múltiplo de $p$ para garantizar distribución equitativa de carga.
+    \item Se analizan tanto la escalabilidad fuerte ($q$ fijo, $p$ creciente) como la débil ($q$ y $p$ creciendo proporcionalmente).
+\end{itemize}
+
+\textbf{Experimentación práctica:}
+\begin{itemize}
+    \item \textbf{Caso A ($q$ fijo):} Se fija $q = 32$ (múltiplo de todos los valores de $p$) y se varía $p = \{1, 2, 4, 8, 16, 32\}$ y $n_{samples} = \{5000, 10000, 20000, 40000\}$. Esto permite analizar el impacto del tamaño del dataset en la eficiencia del paralelismo.
+    \item \textbf{Caso B ($q = p$):} Se utiliza la configuración $q = p$ (implementación actual del código) y se varían los mismos valores de $p$ y $n_{samples}$. Esto corresponde a escalabilidad débil y permite verificar el comportamiento real de la implementación.
+\end{itemize}
+
+Esta estrategia dual permite:
+\begin{enumerate}
+    \item Verificar la teoría de escalabilidad con respecto a $q$
+    \item Analizar experimentalmente el impacto de $n$ en el rendimiento
+    \item Comparar el comportamiento ideal (teórico) con el real (implementación)
+    \item Cumplir con los requisitos del enunciado de variar $p$ y $n_{samples}$
+\end{enumerate}
+
+
+% --- 3. RESULTADOS Y ANÁLISIS (entrega final) ---
+% \section{Resultados y Análisis}
+% Describa y analice los resultados obtenidos y plantee mejoras a la solución.
+
+% --- 4. BIBLIOGRAFÍA ---
+\section{Bibliografía}
+
+\subsection*{Impacto de las fuentes en el desarrollo del proyecto}
+
+\begin{itemize}
+    \item \textbf{JáJá (1992)} \cite{jaja1992parallel}: base teórica del modelo PRAM en su variante CREW y del costo logarítmico de la reducción en árbol. Se utilizó para formular el Algoritmo 2 y derivar el Trabajo, el Span y el costo $O(\log p)$ de la fase de reducción.
+    \item \textbf{Farias et al. (2022)} \cite{farias2022parallelmlps}: respalda que el entrenamiento independiente de múltiples MLP es un problema \textit{embarrassingly parallel}. Justificó la elección del paralelismo sobre semillas (paralelismo de tareas) como estrategia de descomposición.
+    \item \textbf{Goodfellow et al. (2016)} \cite{goodfellow2016deep}: formulación matricial de la propagación hacia adelante y la retropropagación. Se utilizó para escribir el Algoritmo 3 (Entrenar\_MLP) e identificar las multiplicaciones matriciales dominantes que determinan la complejidad $O(E \cdot n \cdot d \cdot h)$.
+    \item \textbf{Apuntes del curso (U2.2)} \cite{u2.2}: esquema de reducción en árbol binario empleado en la fase \textit{Reduce} del algoritmo PRAM.
+    \item \textbf{Inteligencia artificial (Claude, Anthropic)} \cite{claude}: se utilizó como asistente para la depuración del documento (corrección de errores de compilación y de redacción) y para la organización de su estructura. El contenido fue revisado y validado por el equipo.
+\end{itemize}
+
+\begin{thebibliography}{99}
+
+\bibitem{jaja1992parallel}
+JáJá, Joseph.
+\textit{An Introduction to Parallel Algorithms}.
+Addison-Wesley, Reading, MA, 1992.
+
+\bibitem{farias2022parallelmlps}
+Farias, Felipe Costa, et al.
+``Embarrassingly Parallel Independent Training of Multi-Layer Perceptrons with Heterogeneous Architectures''.
+\textit{arXiv preprint arXiv:2206.08369}, 2022.
+URL: \url{https://arxiv.org/abs/2206.08369}.
+
+\bibitem{goodfellow2016deep}
+Goodfellow, Ian, Yoshua Bengio, y Aaron Courville.
+\textit{Deep Learning}.
+MIT Press, 2016. Capítulo 6: Deep Feedforward Networks, Sección 6.5: Back-Propagation.
+URL: \url{https://www.deeplearningbook.org/}.
+
+\bibitem{u2.2}
+José Fiestas.
+\textit{U2.2 Diseño en paralelo PRAM\_01 apuntes}.
+Computación Paralela y Distribuida, UTEC, 2026-II.
+
+\bibitem{claude}
+Anthropic.
+\textit{Claude} (modelo de lenguaje). Asistente de IA utilizado en setiembre 2026.
+URL: \url{https://claude.ai}.
+
+\end{thebibliography}
+
+\end{document}

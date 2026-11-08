@@ -9,11 +9,15 @@ import mlp_paralelo as mlp
 from mlp_paralelo import flops_entrenamiento
 
 
-CAMPOS = ["experimento", "version", "n", "q", "p", "B", "rep", "t_total", "t_map", "t_reduce", "acc", "seed", "t_cpu_map", "cpu_ratio", "nivcsw", "E", "h", "d", "flops_modelo"]
+CAMPOS = ["experimento", "version", "n", "q", "p", "B", "rep", "t_total", "t_map", "t_reduce", "t_spawn", "t_other", "acc", "seed", "nivcsw", "E", "h", "d", "flops_modelo"]
 
 
 def _fila(exp, r, rep, E, h, d):
-    return {**{k: r[k] for k in ("version", "n", "q", "p", "B", "t_total", "t_map", "t_reduce", "acc", "seed", "t_cpu_map", "cpu_ratio", "nivcsw")},
+    extra = {"t_spawn": 0.0, "t_other": 0.0}
+    if r["version"] != "beta1":
+        extra = {"t_spawn": r["t_spawn"], "t_other": r["t_other"]}
+    return {**{k: r[k] for k in ("version", "n", "q", "p", "B", "t_total", "t_map", "t_reduce", "acc", "seed", "nivcsw")},
+            **extra,
             "experimento": exp, "rep": rep, "E": E, "h": h, "d": d, "flops_modelo": flops_entrenamiento(r["n"], d, h, E)}
 
 
@@ -60,14 +64,14 @@ def main():
                     for p in ps:
                         r = par.run(n, a.q, p, d, a.h, a.E, B_par)
                         w.writerow(_fila("caso_a", r, rep, a.E, a.h, d)); f.flush()
-                        print(f"[{_hora()}] caso_a {r['version']} n={n} q={a.q} p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} cpu/pared={r['cpu_ratio']:.3f} nivcsw={r['nivcsw']}", flush=True)
+                        print(f"[{_hora()}] caso_a {r['version']} n={n} q={a.q} p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} nivcsw={r['nivcsw']}", flush=True)
                 if "caso_b" in a.solo:
                     for p in ps:
                         r = beta1.run(n, p, d, a.h, a.E, B)
                         w.writerow(_fila("caso_b", r, rep, a.E, a.h, d)); f.flush()
                         r = par.run(n, p, p, d, a.h, a.E, B_par)
                         w.writerow(_fila("caso_b", r, rep, a.E, a.h, d)); f.flush()
-                        print(f"[{_hora()}] caso_b {r['version']} n={n} q=p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} cpu/pared={r['cpu_ratio']:.3f} nivcsw={r['nivcsw']}", flush=True)
+                        print(f"[{_hora()}] caso_b {r['version']} n={n} q=p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} nivcsw={r['nivcsw']}", flush=True)
                 if "caso_q" in a.solo:
                     for q in qs:
                         r = beta1.run(n, q, d, a.h, a.E, B)
@@ -76,7 +80,7 @@ def main():
                         for p in ps:
                             r = par.run(n, q, p, d, a.h, a.E, B_par)
                             w.writerow(_fila("caso_q", r, rep, a.E, a.h, d)); f.flush()
-                            print(f"[{_hora()}] caso_q {r['version']} n={n} q={q} p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} cpu/pared={r['cpu_ratio']:.3f} nivcsw={r['nivcsw']}", flush=True)
+                            print(f"[{_hora()}] caso_q {r['version']} n={n} q={q} p={p} T={r['t_total']:.2f}s acc={r['acc']:.4f} s*={r['seed']} nivcsw={r['nivcsw']}", flush=True)
 
 
 if __name__ == "__main__":

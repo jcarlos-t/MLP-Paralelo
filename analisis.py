@@ -104,9 +104,12 @@ def graficas_caso_a(A, coef, rA, out):
     _guardar(fig, out, "caso_a_flops_vs_p.png")
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    g = A[A.n == max(ns)]
-    ax.bar([str(p) for p in g.p], g.t_map, label="map (entrenar)")
-    ax.bar([str(p) for p in g.p], g.t_total - g.t_map, bottom=g.t_map, label="reduce + arranque de procesos")
+    g = A[A.n == max(ns) & (A.version != "beta1")]
+    partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce), ("otro", g.t_other)]
+    bottom = np.zeros(len(g))
+    for nombre, vals in partes:
+        ax.bar([str(p) for p in g.p], vals, bottom=bottom, label=nombre)
+        bottom = bottom + vals.to_numpy()
     ax.set_xlabel("p"); ax.set_ylabel("tiempo (s)"); ax.set_title(f"Caso A: desglose del tiempo, n={max(ns)}"); ax.legend()
     _guardar(fig, out, "caso_a_desglose.png")
 
@@ -217,8 +220,9 @@ def main():
     raw = pd.read_csv(args.csv)
     med = raw.groupby(["experimento", "version", "n", "q", "p"], as_index=False).agg(
         t_total=("t_total", "median"), t_map=("t_map", "median"), t_reduce=("t_reduce", "median"),
+        t_spawn=("t_spawn", "median"), t_other=("t_other", "median"),
         t_std=("t_total", "std"), acc=("acc", "max"), flops_modelo=("flops_modelo", "first"),
-        cpu_ratio=("cpu_ratio", "min"), nivcsw=("nivcsw", "max"))
+        nivcsw=("nivcsw", "max"))
 
     A = metricas(med, "caso_a")
     B = metricas(med, "caso_b")
@@ -252,7 +256,7 @@ def main():
     with open(os.path.join(args.out, "ajuste.txt"), "w") as f:
         f.write(texto)
     print(texto)
-    cols = ["n", "q", "p", "t_total", "T_teo", "S", "E", "acc", "cpu_ratio", "nivcsw"]
+    cols = ["n", "q", "p", "t_total", "T_teo", "S", "E", "acc", "nivcsw"]
     if A is not None:
         print("Caso A (q fijo, escalabilidad fuerte):")
         print(A[cols].to_string(index=False))
