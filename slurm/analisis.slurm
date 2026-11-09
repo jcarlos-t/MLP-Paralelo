@@ -8,6 +8,7 @@
 #SBATCH --time=00:15:00
 #SBATCH --output=slurm_analisis_%j.out
 #SBATCH --error=slurm_analisis_%j.err
+#SBATCH --mail-type=END,FAIL
 
 set -euo pipefail
 module purge

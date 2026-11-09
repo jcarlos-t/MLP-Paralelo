@@ -6,6 +6,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=00:20:00
 #SBATCH --output=slurm_prueba_%j.out
+#SBATCH --mail-type=END,FAIL
 
 set -euo pipefail
 module purge
