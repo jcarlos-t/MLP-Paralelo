@@ -85,7 +85,7 @@ def run(n, q, d=D_DEFAULT, h=H_DEFAULT, E=E_DEFAULT, B=None, guardar=None):
     niv = resource.getrusage(resource.RUSAGE_SELF).ru_nivcsw - r0.ru_nivcsw
     if guardar:
         joblib.dump(m_best, guardar)
-    return {"version": "beta1", "n": n, "q": q, "p": 1, "B": B or 0, "t_total": t, "t_map": t, "t_reduce": 0.0, "acc": a_best, "seed": s_best,
+    return {"version": "sequential", "n": n, "q": q, "p": 1, "B": B or 0, "t_total": t, "t_map": t, "t_reduce": 0.0, "acc": a_best, "seed": s_best,
             "t_cpu_map": c, "cpu_ratio": c / t, "nivcsw": niv}
 
 if __name__ == "__main__":

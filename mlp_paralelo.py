@@ -150,7 +150,7 @@ def run(n, q, p, d=D_DEFAULT, h=H_DEFAULT, E=E_DEFAULT, B=1024, guardar=None):
     m_best = vector_a_modelo(np.frombuffer(W, dtype=np.float64)[:tam], d, h, S[0])
     if guardar:
         joblib.dump(m_best, guardar)
-    return {"version": "beta3", "n": n, "q": q, "p": p, "B": B or 0, "t_total": t,
+    return {"version": "parallel", "n": n, "q": q, "p": p, "B": B or 0, "t_total": t,
             "t_map": wall_map, "t_reduce": wall_red, "t_spawn": t_spawn,
             "t_other": t - t_spawn - wall_map - wall_red,
             "acc": A[0], "seed": S[0], "nivcsw": sum(NIV)}

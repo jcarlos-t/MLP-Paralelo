@@ -44,7 +44,7 @@ En el modelo del informe, T_oh ≈ b log₂ p + c. Se grafica **T_oh vs p en una
 
 ### Desglose del tiempo paralelo
 
-T_p se mide descompuesto con timestamps por proceso: `t_spawn` (fork + entrada de workers), `wall_map` (fase de entrenamiento, incluye la espera en la barrera map→reduce), `wall_red` (reduce) y `t_other` (residual: joins, drift y todo lo que el modelo PRAM no considera). En CSV: `t_map`/`t_reduce` son ahora tiempos wall de fase; `t_spawn` y `t_other` solo existen para beta3.
+T_p se mide descompuesto con timestamps por proceso: `t_spawn` (fork + entrada de workers), `wall_map` (fase de entrenamiento, incluye la espera en la barrera map→reduce), `wall_red` (reduce) y `t_other` (residual: joins, drift y todo lo que el modelo PRAM no considera). En CSV: `t_map`/`t_reduce` son ahora tiempos wall de fase; `t_spawn` y `t_other` solo existen para la versión `parallel`.
 
 `t_other` vs p se grafica en el caso de escalabilidad con la misma estructura que T_oh: **una figura, una curva por q**. Si crece con p, el costo de crear/sincronizar procesos domina lo no modelado; si es plano, es una constante de implementación (el `c` del ajuste).
 

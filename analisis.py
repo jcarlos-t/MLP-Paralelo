@@ -34,8 +34,8 @@ def metricas(med, exp):
     de = med[med.experimento == exp]
     if not len(de):
         return None
-    seq = de[de.version == "beta1"].set_index(["n", "q"]).t_total
-    par = de[de.version != "beta1"].copy()
+    seq = de[de.version == "sequential"].set_index(["n", "q"]).t_total
+    par = de[de.version != "sequential"].copy()
     par["Ts"] = [seq[(n, q)] for n, q in zip(par.n, par.q)]
     par["S"] = par.Ts / par.t_total
     par["E"] = par.S / par.p
@@ -131,7 +131,7 @@ def graficas_escalabilidad(E, coef, out):
 
     # Desglose apilado: solo q=32 y q=256, figuras separadas
     for q in (32, 256):
-        g = E[(E.q == q) & (E.version != "beta1")].sort_values("p")
+        g = E[(E.q == q) & (E.version != "sequential")].sort_values("p")
         if not len(g):
             continue
         partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce), ("otro", g.t_other)]
@@ -173,7 +173,7 @@ def graficas_impacto_n(A, out):
     _guardar(fig, out, "impacto_n_gflops.png")
 
     for n in ns:
-        g = A[(A.n == n) & (A.version != "beta1")].sort_values("p")
+        g = A[(A.n == n) & (A.version != "sequential")].sort_values("p")
         if not len(g):
             continue
         partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce), ("otro", g.t_other)]

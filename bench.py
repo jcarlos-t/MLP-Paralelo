@@ -24,7 +24,7 @@ def _tag():
 
 def _fila(exp, r, rep, E, h, d, nodo, tag):
     extra = {"t_spawn": 0.0, "t_other": 0.0}
-    if r["version"] != "beta1":
+    if r["version"] != "sequential":
         extra = {"t_spawn": r["t_spawn"], "t_other": r["t_other"]}
     return {**{k: r[k] for k in ("version", "n", "q", "p", "B", "t_total", "t_map", "t_reduce",
                                 "acc", "seed", "nivcsw")},
@@ -89,7 +89,7 @@ def _hora():
 
 
 def _log(exp, fila, r):
-    if r["version"] == "beta1":
+    if r["version"] == "sequential":
         print(f"[{_hora()}] {exp} seq n={r['n']} q={r['q']} T={r['t_total']:.2f}s s*={r['seed']}", flush=True)
     else:
         print(f"[{_hora()}] {exp} {r['version']} n={r['n']} q={r['q']} p={r['p']} "
@@ -130,14 +130,14 @@ def main():
     cache = _cargar_cache(a.cache, a.out, tag, nodo, B or 0, a.E, a.h)
     nuevo = not os.path.exists(a.out)
     print(f"# {nodo} cpus={os.cpu_count()} q={a.q} E={a.E} h={a.h} d={d} "
-          f"B={a.B} B_par={B_par or 0} reps={a.reps} version=beta3 tag={tag} "
+          f"B={a.B} B_par={B_par or 0} reps={a.reps} version=parallel tag={tag} "
           f"experimentos={a.solo} configs={len(cfgs)}", flush=True)
     with open(a.out, "a", newline="") as f:
         w = csv.DictWriter(f, fieldnames=CAMPOS)
         if nuevo:
             w.writeheader()
         for exp, n, q, p, es_seq in cfgs:
-            version = "beta1" if es_seq else "beta3"
+            version = "sequential" if es_seq else "parallel"
             p_key = 1 if es_seq else p
             key = (version, n, q, p_key, B or 0, a.E, a.h)
             guardadas = [r for r in cache.get(key, []) if int(r["rep"]) < a.reps]
