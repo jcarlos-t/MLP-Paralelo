@@ -10,3 +10,5 @@ numa_n*.txt
 .venv
 !resultados/**
 khipu_docs
+resultados
+figs
