@@ -1,0 +1,261 @@
+nodo: n005  cpus: 32
+# n005 cpus=64 q=32 E=200 h=32 d=20 B=1024 B_par=1024 reps=6 version=parallel tag=33023e83 experimentos=impacto_n configs=49
+[22:46:57] impacto_n seq n=500 q=32 T=1.34s s*=1
+[22:46:58] impacto_n seq n=500 q=32 T=1.33s s*=1
+[22:46:59] impacto_n seq n=500 q=32 T=1.36s s*=1
+[22:47:01] impacto_n seq n=500 q=32 T=1.34s s*=1
+[22:47:02] impacto_n seq n=500 q=32 T=1.38s s*=1
+[22:47:03] impacto_n seq n=500 q=32 T=1.34s s*=1
+[22:47:05] impacto_n parallel n=500 q=32 p=1 T=1.34s acc=0.8400 s*=1 nivcsw=2
+[22:47:06] impacto_n parallel n=500 q=32 p=1 T=1.36s acc=0.8400 s*=1 nivcsw=4
+[22:47:07] impacto_n parallel n=500 q=32 p=1 T=1.38s acc=0.8400 s*=1 nivcsw=2
+[22:47:09] impacto_n parallel n=500 q=32 p=1 T=1.37s acc=0.8400 s*=1 nivcsw=4
+[22:47:10] impacto_n parallel n=500 q=32 p=1 T=1.38s acc=0.8400 s*=1 nivcsw=2
+[22:47:12] impacto_n parallel n=500 q=32 p=1 T=1.52s acc=0.8400 s*=1 nivcsw=2
+[22:47:13] impacto_n parallel n=500 q=32 p=2 T=0.82s acc=0.8400 s*=8 nivcsw=6
+[22:47:13] impacto_n parallel n=500 q=32 p=2 T=0.74s acc=0.8400 s*=8 nivcsw=5
+[22:47:14] impacto_n parallel n=500 q=32 p=2 T=0.81s acc=0.8400 s*=8 nivcsw=3
+[22:47:15] impacto_n parallel n=500 q=32 p=2 T=0.80s acc=0.8400 s*=8 nivcsw=4
+[22:47:16] impacto_n parallel n=500 q=32 p=2 T=0.81s acc=0.8400 s*=8 nivcsw=3
+[22:47:17] impacto_n parallel n=500 q=32 p=2 T=0.81s acc=0.8400 s*=8 nivcsw=8
+[22:47:17] impacto_n parallel n=500 q=32 p=4 T=0.49s acc=0.8400 s*=8 nivcsw=4
+[22:47:17] impacto_n parallel n=500 q=32 p=4 T=0.45s acc=0.8400 s*=8 nivcsw=3
+[22:47:18] impacto_n parallel n=500 q=32 p=4 T=0.45s acc=0.8400 s*=8 nivcsw=4
+[22:47:18] impacto_n parallel n=500 q=32 p=4 T=0.46s acc=0.8400 s*=8 nivcsw=2
+[22:47:19] impacto_n parallel n=500 q=32 p=4 T=0.49s acc=0.8400 s*=8 nivcsw=7
+[22:47:19] impacto_n parallel n=500 q=32 p=4 T=0.49s acc=0.8400 s*=8 nivcsw=4
+[22:47:20] impacto_n parallel n=500 q=32 p=8 T=0.29s acc=0.8400 s*=8 nivcsw=1
+[22:47:20] impacto_n parallel n=500 q=32 p=8 T=0.28s acc=0.8400 s*=8 nivcsw=8
+[22:47:20] impacto_n parallel n=500 q=32 p=8 T=0.28s acc=0.8400 s*=8 nivcsw=6
+[22:47:21] impacto_n parallel n=500 q=32 p=8 T=0.29s acc=0.8400 s*=8 nivcsw=7
+[22:47:21] impacto_n parallel n=500 q=32 p=8 T=0.29s acc=0.8400 s*=8 nivcsw=8
+[22:47:21] impacto_n parallel n=500 q=32 p=8 T=0.29s acc=0.8400 s*=8 nivcsw=3
+[22:47:21] impacto_n parallel n=500 q=32 p=16 T=0.19s acc=0.8400 s*=1 nivcsw=2
+[22:47:22] impacto_n parallel n=500 q=32 p=16 T=0.19s acc=0.8400 s*=1 nivcsw=1
+[22:47:22] impacto_n parallel n=500 q=32 p=16 T=0.19s acc=0.8400 s*=1 nivcsw=10
+[22:47:22] impacto_n parallel n=500 q=32 p=16 T=0.19s acc=0.8400 s*=1 nivcsw=3
+[22:47:22] impacto_n parallel n=500 q=32 p=16 T=0.20s acc=0.8400 s*=1 nivcsw=0
+[22:47:22] impacto_n parallel n=500 q=32 p=16 T=0.19s acc=0.8400 s*=1 nivcsw=1
+[22:47:23] impacto_n parallel n=500 q=32 p=32 T=0.25s acc=0.8400 s*=1 nivcsw=6
+[22:47:23] impacto_n parallel n=500 q=32 p=32 T=0.25s acc=0.8400 s*=1 nivcsw=17
+[22:47:23] impacto_n parallel n=500 q=32 p=32 T=0.25s acc=0.8400 s*=1 nivcsw=0
+[22:47:23] impacto_n parallel n=500 q=32 p=32 T=0.24s acc=0.8400 s*=1 nivcsw=5
+[22:47:24] impacto_n parallel n=500 q=32 p=32 T=0.25s acc=0.8400 s*=1 nivcsw=7
+[22:47:24] impacto_n parallel n=500 q=32 p=32 T=0.25s acc=0.8400 s*=1 nivcsw=16
+[22:47:26] impacto_n seq n=1000 q=32 T=2.37s s*=0
+[22:47:29] impacto_n seq n=1000 q=32 T=2.36s s*=0
+[22:47:31] impacto_n seq n=1000 q=32 T=2.35s s*=0
+[22:47:33] impacto_n seq n=1000 q=32 T=2.42s s*=0
+[22:47:36] impacto_n seq n=1000 q=32 T=2.34s s*=0
+[22:47:38] impacto_n seq n=1000 q=32 T=2.33s s*=0
+[22:47:40] impacto_n parallel n=1000 q=32 p=1 T=2.36s acc=0.8950 s*=0 nivcsw=3
+[22:47:43] impacto_n parallel n=1000 q=32 p=1 T=2.35s acc=0.8950 s*=0 nivcsw=4
+[22:47:45] impacto_n parallel n=1000 q=32 p=1 T=2.34s acc=0.8950 s*=0 nivcsw=4
+[22:47:48] impacto_n parallel n=1000 q=32 p=1 T=2.35s acc=0.8950 s*=0 nivcsw=3
+[22:47:50] impacto_n parallel n=1000 q=32 p=1 T=2.35s acc=0.8950 s*=0 nivcsw=5
+[22:47:52] impacto_n parallel n=1000 q=32 p=1 T=2.35s acc=0.8950 s*=0 nivcsw=3
+[22:47:54] impacto_n parallel n=1000 q=32 p=2 T=1.34s acc=0.8950 s*=0 nivcsw=4
+[22:47:55] impacto_n parallel n=1000 q=32 p=2 T=1.33s acc=0.8950 s*=0 nivcsw=6
+[22:47:56] impacto_n parallel n=1000 q=32 p=2 T=1.33s acc=0.8950 s*=0 nivcsw=6
+[22:47:58] impacto_n parallel n=1000 q=32 p=2 T=1.30s acc=0.8950 s*=0 nivcsw=6
+[22:47:59] impacto_n parallel n=1000 q=32 p=2 T=1.27s acc=0.8950 s*=0 nivcsw=5
+[22:48:00] impacto_n parallel n=1000 q=32 p=2 T=1.27s acc=0.8950 s*=0 nivcsw=4
+[22:48:01] impacto_n parallel n=1000 q=32 p=4 T=0.79s acc=0.8950 s*=0 nivcsw=11
+[22:48:02] impacto_n parallel n=1000 q=32 p=4 T=0.81s acc=0.8950 s*=0 nivcsw=2
+[22:48:03] impacto_n parallel n=1000 q=32 p=4 T=0.79s acc=0.8950 s*=0 nivcsw=5
+[22:48:03] impacto_n parallel n=1000 q=32 p=4 T=0.79s acc=0.8950 s*=0 nivcsw=6
+[22:48:04] impacto_n parallel n=1000 q=32 p=4 T=0.84s acc=0.8950 s*=0 nivcsw=6
+[22:48:05] impacto_n parallel n=1000 q=32 p=4 T=0.78s acc=0.8950 s*=0 nivcsw=11
+[22:48:05] impacto_n parallel n=1000 q=32 p=8 T=0.45s acc=0.8950 s*=0 nivcsw=1
+[22:48:06] impacto_n parallel n=1000 q=32 p=8 T=0.46s acc=0.8950 s*=0 nivcsw=9
+[22:48:06] impacto_n parallel n=1000 q=32 p=8 T=0.46s acc=0.8950 s*=0 nivcsw=0
+[22:48:07] impacto_n parallel n=1000 q=32 p=8 T=0.47s acc=0.8950 s*=0 nivcsw=10
+[22:48:07] impacto_n parallel n=1000 q=32 p=8 T=0.48s acc=0.8950 s*=0 nivcsw=13
+[22:48:08] impacto_n parallel n=1000 q=32 p=8 T=0.49s acc=0.8950 s*=0 nivcsw=12
+[22:48:08] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=4
+[22:48:08] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=17
+[22:48:09] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=7
+[22:48:09] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=11
+[22:48:09] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=2
+[22:48:10] impacto_n parallel n=1000 q=32 p=16 T=0.29s acc=0.8950 s*=0 nivcsw=14
+[22:48:10] impacto_n parallel n=1000 q=32 p=32 T=0.36s acc=0.8950 s*=0 nivcsw=18
+[22:48:10] impacto_n parallel n=1000 q=32 p=32 T=0.35s acc=0.8950 s*=0 nivcsw=0
+[22:48:11] impacto_n parallel n=1000 q=32 p=32 T=0.38s acc=0.8950 s*=0 nivcsw=13
+[22:48:11] impacto_n parallel n=1000 q=32 p=32 T=0.35s acc=0.8950 s*=0 nivcsw=9
+[22:48:11] impacto_n parallel n=1000 q=32 p=32 T=0.37s acc=0.8950 s*=0 nivcsw=3
+[22:48:12] impacto_n parallel n=1000 q=32 p=32 T=0.36s acc=0.8950 s*=0 nivcsw=31
+[22:48:12] impacto_n n=2000 q=32 p=1 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=1 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=2 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=4 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=8 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=16 cache (6 reps)
+[22:48:12] impacto_n n=2000 q=32 p=32 cache (6 reps)
+[22:48:22] impacto_n seq n=5000 q=32 T=10.52s s*=15
+[22:48:33] impacto_n seq n=5000 q=32 T=10.62s s*=15
+[22:48:43] impacto_n seq n=5000 q=32 T=10.45s s*=15
+[22:48:54] impacto_n seq n=5000 q=32 T=10.56s s*=15
+[22:49:05] impacto_n seq n=5000 q=32 T=10.65s s*=15
+[22:49:15] impacto_n seq n=5000 q=32 T=10.67s s*=15
+[22:49:26] impacto_n parallel n=5000 q=32 p=1 T=10.48s acc=0.8790 s*=15 nivcsw=10
+[22:49:36] impacto_n parallel n=5000 q=32 p=1 T=10.55s acc=0.8790 s*=15 nivcsw=9
+[22:49:47] impacto_n parallel n=5000 q=32 p=1 T=10.44s acc=0.8790 s*=15 nivcsw=8
+[22:49:57] impacto_n parallel n=5000 q=32 p=1 T=10.38s acc=0.8790 s*=15 nivcsw=9
+[22:50:08] impacto_n parallel n=5000 q=32 p=1 T=10.54s acc=0.8790 s*=15 nivcsw=9
+[22:50:18] impacto_n parallel n=5000 q=32 p=1 T=10.36s acc=0.8790 s*=15 nivcsw=9
+[22:50:24] impacto_n parallel n=5000 q=32 p=2 T=5.62s acc=0.8790 s*=15 nivcsw=14
+[22:50:29] impacto_n parallel n=5000 q=32 p=2 T=5.55s acc=0.8790 s*=15 nivcsw=14
+[22:50:35] impacto_n parallel n=5000 q=32 p=2 T=5.73s acc=0.8790 s*=15 nivcsw=14
+[22:50:41] impacto_n parallel n=5000 q=32 p=2 T=5.61s acc=0.8790 s*=15 nivcsw=15
+[22:50:46] impacto_n parallel n=5000 q=32 p=2 T=5.58s acc=0.8790 s*=15 nivcsw=16
+[22:50:52] impacto_n parallel n=5000 q=32 p=2 T=5.68s acc=0.8790 s*=15 nivcsw=15
+[22:50:55] impacto_n parallel n=5000 q=32 p=4 T=3.38s acc=0.8790 s*=15 nivcsw=18
+[22:50:59] impacto_n parallel n=5000 q=32 p=4 T=3.43s acc=0.8790 s*=15 nivcsw=22
+[22:51:02] impacto_n parallel n=5000 q=32 p=4 T=3.42s acc=0.8790 s*=15 nivcsw=20
+[22:51:06] impacto_n parallel n=5000 q=32 p=4 T=3.38s acc=0.8790 s*=15 nivcsw=17
+[22:51:09] impacto_n parallel n=5000 q=32 p=4 T=3.38s acc=0.8790 s*=15 nivcsw=16
+[22:51:13] impacto_n parallel n=5000 q=32 p=4 T=3.38s acc=0.8790 s*=15 nivcsw=22
+[22:51:15] impacto_n parallel n=5000 q=32 p=8 T=1.99s acc=0.8790 s*=15 nivcsw=17
+[22:51:17] impacto_n parallel n=5000 q=32 p=8 T=2.01s acc=0.8790 s*=15 nivcsw=27
+[22:51:19] impacto_n parallel n=5000 q=32 p=8 T=2.02s acc=0.8790 s*=15 nivcsw=18
+[22:51:21] impacto_n parallel n=5000 q=32 p=8 T=2.01s acc=0.8790 s*=15 nivcsw=24
+[22:51:23] impacto_n parallel n=5000 q=32 p=8 T=2.02s acc=0.8790 s*=15 nivcsw=24
+[22:51:25] impacto_n parallel n=5000 q=32 p=8 T=2.02s acc=0.8790 s*=15 nivcsw=24
+[22:51:26] impacto_n parallel n=5000 q=32 p=16 T=1.15s acc=0.8790 s*=15 nivcsw=30
+[22:51:27] impacto_n parallel n=5000 q=32 p=16 T=1.16s acc=0.8790 s*=15 nivcsw=17
+[22:51:28] impacto_n parallel n=5000 q=32 p=16 T=1.19s acc=0.8790 s*=15 nivcsw=17
+[22:51:29] impacto_n parallel n=5000 q=32 p=16 T=1.16s acc=0.8790 s*=15 nivcsw=17
+[22:51:31] impacto_n parallel n=5000 q=32 p=16 T=1.17s acc=0.8790 s*=15 nivcsw=17
+[22:51:32] impacto_n parallel n=5000 q=32 p=16 T=1.17s acc=0.8790 s*=15 nivcsw=25
+[22:51:33] impacto_n parallel n=5000 q=32 p=32 T=1.36s acc=0.8790 s*=15 nivcsw=688
+[22:51:35] impacto_n parallel n=5000 q=32 p=32 T=1.33s acc=0.8790 s*=15 nivcsw=682
+[22:51:36] impacto_n parallel n=5000 q=32 p=32 T=1.32s acc=0.8790 s*=15 nivcsw=545
+[22:51:37] impacto_n parallel n=5000 q=32 p=32 T=1.31s acc=0.8790 s*=15 nivcsw=518
+[22:51:39] impacto_n parallel n=5000 q=32 p=32 T=1.33s acc=0.8790 s*=15 nivcsw=462
+[22:51:40] impacto_n parallel n=5000 q=32 p=32 T=1.31s acc=0.8790 s*=15 nivcsw=627
+[22:52:00] impacto_n seq n=10000 q=32 T=20.37s s*=1
+[22:52:21] impacto_n seq n=10000 q=32 T=20.73s s*=1
+[22:52:42] impacto_n seq n=10000 q=32 T=20.87s s*=1
+[22:53:03] impacto_n seq n=10000 q=32 T=20.82s s*=1
+[22:53:23] impacto_n seq n=10000 q=32 T=20.73s s*=1
+[22:53:44] impacto_n seq n=10000 q=32 T=20.59s s*=1
+[22:54:05] impacto_n parallel n=10000 q=32 p=1 T=20.93s acc=0.8595 s*=1 nivcsw=18
+[22:54:26] impacto_n parallel n=10000 q=32 p=1 T=20.83s acc=0.8595 s*=1 nivcsw=17
+[22:54:47] impacto_n parallel n=10000 q=32 p=1 T=20.82s acc=0.8595 s*=1 nivcsw=16
+[22:55:08] impacto_n parallel n=10000 q=32 p=1 T=20.96s acc=0.8595 s*=1 nivcsw=16
+[22:55:29] impacto_n parallel n=10000 q=32 p=1 T=20.78s acc=0.8595 s*=1 nivcsw=17
+[22:55:49] impacto_n parallel n=10000 q=32 p=1 T=20.87s acc=0.8595 s*=1 nivcsw=16
+[22:56:00] impacto_n parallel n=10000 q=32 p=2 T=10.97s acc=0.8595 s*=1 nivcsw=28
+[22:56:12] impacto_n parallel n=10000 q=32 p=2 T=11.14s acc=0.8595 s*=1 nivcsw=26
+[22:56:23] impacto_n parallel n=10000 q=32 p=2 T=11.01s acc=0.8595 s*=1 nivcsw=28
+[22:56:34] impacto_n parallel n=10000 q=32 p=2 T=11.12s acc=0.8595 s*=1 nivcsw=27
+[22:56:45] impacto_n parallel n=10000 q=32 p=2 T=11.15s acc=0.8595 s*=1 nivcsw=26
+[22:56:56] impacto_n parallel n=10000 q=32 p=2 T=11.19s acc=0.8595 s*=1 nivcsw=22
+[22:57:03] impacto_n parallel n=10000 q=32 p=4 T=6.93s acc=0.8595 s*=1 nivcsw=47
+[22:57:10] impacto_n parallel n=10000 q=32 p=4 T=6.91s acc=0.8595 s*=1 nivcsw=41
+[22:57:17] impacto_n parallel n=10000 q=32 p=4 T=6.87s acc=0.8595 s*=1 nivcsw=40
+[22:57:24] impacto_n parallel n=10000 q=32 p=4 T=6.85s acc=0.8595 s*=1 nivcsw=39
+[22:57:31] impacto_n parallel n=10000 q=32 p=4 T=6.86s acc=0.8595 s*=1 nivcsw=39
+[22:57:37] impacto_n parallel n=10000 q=32 p=4 T=6.66s acc=0.8595 s*=1 nivcsw=37
+[22:57:41] impacto_n parallel n=10000 q=32 p=8 T=3.91s acc=0.8595 s*=1 nivcsw=50
+[22:57:45] impacto_n parallel n=10000 q=32 p=8 T=3.88s acc=0.8595 s*=1 nivcsw=42
+[22:57:49] impacto_n parallel n=10000 q=32 p=8 T=3.87s acc=0.8595 s*=1 nivcsw=42
+[22:57:53] impacto_n parallel n=10000 q=32 p=8 T=3.74s acc=0.8595 s*=1 nivcsw=43
+[22:57:57] impacto_n parallel n=10000 q=32 p=8 T=3.91s acc=0.8595 s*=1 nivcsw=44
+[22:58:01] impacto_n parallel n=10000 q=32 p=8 T=3.79s acc=0.8595 s*=1 nivcsw=44
+[22:58:03] impacto_n parallel n=10000 q=32 p=16 T=2.22s acc=0.8595 s*=1 nivcsw=62
+[22:58:05] impacto_n parallel n=10000 q=32 p=16 T=2.23s acc=0.8595 s*=1 nivcsw=49
+[22:58:08] impacto_n parallel n=10000 q=32 p=16 T=2.43s acc=0.8595 s*=1 nivcsw=32
+[22:58:10] impacto_n parallel n=10000 q=32 p=16 T=2.43s acc=0.8595 s*=1 nivcsw=64
+[22:58:12] impacto_n parallel n=10000 q=32 p=16 T=2.23s acc=0.8595 s*=1 nivcsw=49
+[22:58:14] impacto_n parallel n=10000 q=32 p=16 T=2.24s acc=0.8595 s*=1 nivcsw=35
+[22:58:17] impacto_n parallel n=10000 q=32 p=32 T=2.69s acc=0.8595 s*=1 nivcsw=1303
+[22:58:20] impacto_n parallel n=10000 q=32 p=32 T=2.69s acc=0.8595 s*=1 nivcsw=940
+[22:58:23] impacto_n parallel n=10000 q=32 p=32 T=2.67s acc=0.8595 s*=1 nivcsw=1123
+[22:58:25] impacto_n parallel n=10000 q=32 p=32 T=2.71s acc=0.8595 s*=1 nivcsw=1475
+[22:58:28] impacto_n parallel n=10000 q=32 p=32 T=2.69s acc=0.8595 s*=1 nivcsw=1368
+[22:58:31] impacto_n parallel n=10000 q=32 p=32 T=2.68s acc=0.8595 s*=1 nivcsw=1624
+[22:59:11] impacto_n seq n=20000 q=32 T=40.49s s*=21
+[22:59:53] impacto_n seq n=20000 q=32 T=41.78s s*=21
+[23:00:35] impacto_n seq n=20000 q=32 T=42.12s s*=21
+[23:01:18] impacto_n seq n=20000 q=32 T=42.59s s*=21
+[23:02:01] impacto_n seq n=20000 q=32 T=42.65s s*=21
+[23:02:43] impacto_n seq n=20000 q=32 T=42.48s s*=21
+[23:03:26] impacto_n parallel n=20000 q=32 p=1 T=42.39s acc=0.8778 s*=21 nivcsw=29
+[23:04:08] impacto_n parallel n=20000 q=32 p=1 T=42.05s acc=0.8778 s*=21 nivcsw=29
+[23:04:50] impacto_n parallel n=20000 q=32 p=1 T=41.92s acc=0.8778 s*=21 nivcsw=28
+[23:05:32] impacto_n parallel n=20000 q=32 p=1 T=42.47s acc=0.8778 s*=21 nivcsw=29
+[23:06:14] impacto_n parallel n=20000 q=32 p=1 T=42.18s acc=0.8778 s*=21 nivcsw=31
+[23:06:57] impacto_n parallel n=20000 q=32 p=1 T=42.41s acc=0.8778 s*=21 nivcsw=30
+[23:07:20] impacto_n parallel n=20000 q=32 p=2 T=22.75s acc=0.8778 s*=21 nivcsw=49
+[23:07:42] impacto_n parallel n=20000 q=32 p=2 T=22.57s acc=0.8778 s*=21 nivcsw=50
+[23:08:05] impacto_n parallel n=20000 q=32 p=2 T=22.61s acc=0.8778 s*=21 nivcsw=49
+[23:08:28] impacto_n parallel n=20000 q=32 p=2 T=22.86s acc=0.8778 s*=21 nivcsw=49
+[23:08:50] impacto_n parallel n=20000 q=32 p=2 T=22.62s acc=0.8778 s*=21 nivcsw=51
+[23:09:13] impacto_n parallel n=20000 q=32 p=2 T=22.83s acc=0.8778 s*=21 nivcsw=51
+[23:09:27] impacto_n parallel n=20000 q=32 p=4 T=13.93s acc=0.8778 s*=21 nivcsw=82
+[23:09:41] impacto_n parallel n=20000 q=32 p=4 T=13.36s acc=0.8778 s*=21 nivcsw=72
+[23:09:54] impacto_n parallel n=20000 q=32 p=4 T=13.06s acc=0.8778 s*=21 nivcsw=75
+[23:10:08] impacto_n parallel n=20000 q=32 p=4 T=13.94s acc=0.8778 s*=21 nivcsw=87
+[23:10:22] impacto_n parallel n=20000 q=32 p=4 T=13.90s acc=0.8778 s*=21 nivcsw=92
+[23:10:34] impacto_n parallel n=20000 q=32 p=4 T=12.67s acc=0.8778 s*=21 nivcsw=70
+[23:10:42] impacto_n parallel n=20000 q=32 p=8 T=7.94s acc=0.8778 s*=21 nivcsw=91
+[23:10:50] impacto_n parallel n=20000 q=32 p=8 T=7.92s acc=0.8778 s*=21 nivcsw=95
+[23:10:58] impacto_n parallel n=20000 q=32 p=8 T=7.59s acc=0.8778 s*=21 nivcsw=76
+[23:11:06] impacto_n parallel n=20000 q=32 p=8 T=7.95s acc=0.8778 s*=21 nivcsw=94
+[23:11:14] impacto_n parallel n=20000 q=32 p=8 T=7.73s acc=0.8778 s*=21 nivcsw=82
+[23:11:21] impacto_n parallel n=20000 q=32 p=8 T=7.70s acc=0.8778 s*=21 nivcsw=89
+[23:11:26] impacto_n parallel n=20000 q=32 p=16 T=4.47s acc=0.8778 s*=21 nivcsw=85
+[23:11:30] impacto_n parallel n=20000 q=32 p=16 T=4.46s acc=0.8778 s*=21 nivcsw=94
+[23:11:35] impacto_n parallel n=20000 q=32 p=16 T=4.46s acc=0.8778 s*=21 nivcsw=84
+[23:11:39] impacto_n parallel n=20000 q=32 p=16 T=4.46s acc=0.8778 s*=21 nivcsw=84
+[23:11:44] impacto_n parallel n=20000 q=32 p=16 T=4.48s acc=0.8778 s*=21 nivcsw=109
+[23:11:48] impacto_n parallel n=20000 q=32 p=16 T=4.48s acc=0.8778 s*=21 nivcsw=98
+[23:11:54] impacto_n parallel n=20000 q=32 p=32 T=5.68s acc=0.8778 s*=21 nivcsw=4169
+[23:12:00] impacto_n parallel n=20000 q=32 p=32 T=5.71s acc=0.8778 s*=21 nivcsw=3838
+[23:12:06] impacto_n parallel n=20000 q=32 p=32 T=5.70s acc=0.8778 s*=21 nivcsw=3332
+[23:12:12] impacto_n parallel n=20000 q=32 p=32 T=5.77s acc=0.8778 s*=21 nivcsw=4140
+[23:12:17] impacto_n parallel n=20000 q=32 p=32 T=5.75s acc=0.8778 s*=21 nivcsw=2873
+[23:12:23] impacto_n parallel n=20000 q=32 p=32 T=5.75s acc=0.8778 s*=21 nivcsw=3325
+[23:13:49] impacto_n seq n=40000 q=32 T=85.38s s*=8
+[23:15:10] impacto_n seq n=40000 q=32 T=81.20s s*=8
+[23:16:31] impacto_n seq n=40000 q=32 T=81.36s s*=8
+[23:17:52] impacto_n seq n=40000 q=32 T=81.12s s*=8
+[23:19:13] impacto_n seq n=40000 q=32 T=80.42s s*=8
+[23:20:33] impacto_n seq n=40000 q=32 T=79.80s s*=8
+[23:21:54] impacto_n parallel n=40000 q=32 p=1 T=80.89s acc=0.8469 s*=8 nivcsw=42
+[23:23:15] impacto_n parallel n=40000 q=32 p=1 T=81.14s acc=0.8469 s*=8 nivcsw=45
+[23:24:36] impacto_n parallel n=40000 q=32 p=1 T=81.08s acc=0.8469 s*=8 nivcsw=45
+[23:25:58] impacto_n parallel n=40000 q=32 p=1 T=81.41s acc=0.8469 s*=8 nivcsw=45
+[23:27:19] impacto_n parallel n=40000 q=32 p=1 T=81.63s acc=0.8469 s*=8 nivcsw=44
+[23:28:42] impacto_n parallel n=40000 q=32 p=1 T=82.68s acc=0.8469 s*=8 nivcsw=45
+[23:29:26] impacto_n parallel n=40000 q=32 p=2 T=43.59s acc=0.8469 s*=8 nivcsw=76
+[23:30:12] impacto_n parallel n=40000 q=32 p=2 T=46.03s acc=0.8469 s*=8 nivcsw=117
+[23:30:56] impacto_n parallel n=40000 q=32 p=2 T=43.92s acc=0.8469 s*=8 nivcsw=76
+[23:31:40] impacto_n parallel n=40000 q=32 p=2 T=44.35s acc=0.8469 s*=8 nivcsw=74
+[23:32:27] impacto_n parallel n=40000 q=32 p=2 T=46.73s acc=0.8469 s*=8 nivcsw=121
+[23:33:11] impacto_n parallel n=40000 q=32 p=2 T=43.99s acc=0.8469 s*=8 nivcsw=78
+[23:33:36] impacto_n parallel n=40000 q=32 p=4 T=24.95s acc=0.8469 s*=8 nivcsw=99
+[23:34:03] impacto_n parallel n=40000 q=32 p=4 T=26.53s acc=0.8469 s*=8 nivcsw=125
+[23:34:28] impacto_n parallel n=40000 q=32 p=4 T=25.76s acc=0.8469 s*=8 nivcsw=113
+[23:34:55] impacto_n parallel n=40000 q=32 p=4 T=26.88s acc=0.8469 s*=8 nivcsw=138
+[23:35:21] impacto_n parallel n=40000 q=32 p=4 T=25.96s acc=0.8469 s*=8 nivcsw=126
+[23:35:47] impacto_n parallel n=40000 q=32 p=4 T=25.80s acc=0.8469 s*=8 nivcsw=119
+[23:36:02] impacto_n parallel n=40000 q=32 p=8 T=15.10s acc=0.8469 s*=8 nivcsw=116
+[23:36:17] impacto_n parallel n=40000 q=32 p=8 T=14.96s acc=0.8469 s*=8 nivcsw=151
+[23:36:32] impacto_n parallel n=40000 q=32 p=8 T=14.94s acc=0.8469 s*=8 nivcsw=107
+[23:36:48] impacto_n parallel n=40000 q=32 p=8 T=15.32s acc=0.8469 s*=8 nivcsw=141
+[23:37:03] impacto_n parallel n=40000 q=32 p=8 T=14.74s acc=0.8469 s*=8 nivcsw=113
+[23:37:17] impacto_n parallel n=40000 q=32 p=8 T=14.66s acc=0.8469 s*=8 nivcsw=119
+[23:37:26] impacto_n parallel n=40000 q=32 p=16 T=8.71s acc=0.8469 s*=8 nivcsw=101
+[23:37:35] impacto_n parallel n=40000 q=32 p=16 T=8.68s acc=0.8469 s*=8 nivcsw=120
+[23:37:44] impacto_n parallel n=40000 q=32 p=16 T=8.75s acc=0.8469 s*=8 nivcsw=144
+[23:37:52] impacto_n parallel n=40000 q=32 p=16 T=8.65s acc=0.8469 s*=8 nivcsw=139
+[23:38:01] impacto_n parallel n=40000 q=32 p=16 T=8.66s acc=0.8469 s*=8 nivcsw=129
+[23:38:11] impacto_n parallel n=40000 q=32 p=16 T=9.37s acc=0.8469 s*=8 nivcsw=149
+[23:38:22] impacto_n parallel n=40000 q=32 p=32 T=11.16s acc=0.8469 s*=8 nivcsw=6575
+[23:38:33] impacto_n parallel n=40000 q=32 p=32 T=11.28s acc=0.8469 s*=8 nivcsw=9733
+[23:38:45] impacto_n parallel n=40000 q=32 p=32 T=11.25s acc=0.8469 s*=8 nivcsw=5769
+[23:38:56] impacto_n parallel n=40000 q=32 p=32 T=11.34s acc=0.8469 s*=8 nivcsw=4427
+[23:39:07] impacto_n parallel n=40000 q=32 p=32 T=11.38s acc=0.8469 s*=8 nivcsw=6342
+[23:39:19] impacto_n parallel n=40000 q=32 p=32 T=11.32s acc=0.8469 s*=8 nivcsw=4443

@@ -1,0 +1,7 @@
+T_p = a*ceil(q/p)*n + b*log2(p) + c  (ajuste conjunto de los casos presentes)
+a = 6.642269e-05 s/(modelo*muestra)
+b = 3.433976e-01 s/nivel
+c = 6.968604e-02 s
+R^2 global = 0.98765
+R^2 escalabilidad = 0.98835
+R^2 impacto de n = 0.98712
