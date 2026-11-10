@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=32G
-#SBATCH --time=06:00:00
+#SBATCH --time=02:00:00
 #SBATCH --output=slurm_escalabilidad_%j.out
 #SBATCH --error=slurm_escalabilidad_%j.err
 #SBATCH --mail-type=END,FAIL
@@ -21,6 +21,6 @@ export MKL_NUM_THREADS=1
 
 cd "$SLURM_SUBMIT_DIR"
 echo "nodo: $(hostname)  cpus: $SLURM_CPUS_PER_TASK"
-# Caso 1 (escalabilidad): barrido q x p a n=10000 fija; solo combinaciones q multiplo de p
-python3 bench.py --ns 10000 --ps 1,2,4,8,16,32 --qs 16,32,64,128,256 \
+# Caso 1 (escalabilidad): barrido q x p a n=2000 fija; solo combinaciones q multiplo de p
+python3 bench.py --ns 2000 --ps 1,2,4,8,16,32 --qs 8,16,32,64,128,256 \
     --solo escalabilidad --out resultados/escalabilidad.csv
