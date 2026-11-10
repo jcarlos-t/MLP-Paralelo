@@ -1,12 +1,9 @@
 __pycache__/
 *.pyc
-*.csv
 *.joblib
-figs*/
 lscpu_*.txt
 numa_n*.txt
 .venv
-!resultados/**
 khipu_docs
-resultados
-figs
+#resultados
+#figs
