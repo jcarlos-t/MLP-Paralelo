@@ -136,16 +136,16 @@ A continuación, se presenta el algoritmo secuencial base, el cual sirve como pu
 \end{algorithm}
 
 
-Para optimizar este proceso, el diseño del algoritmo propuesto se fundamenta en el modelo PRAM (\textit{Parallel Random Access Machine}) \cite{jaja1992parallel}, en su variante CREW (\textit{Concurrent Read, Exclusive Write}). Esto permite que múltiples procesadores accedan a los mismos datos de entrenamiento simultáneamente (lectura concurrente), mientras que cada hilo escribe sus resultados (modelo y exactitud) en una posición de memoria única e independiente (escritura exclusiva).
+En adelante, $q$ denota el número de semillas y $p$ el número de procesadores disponibles. Para diseñar el algoritmo paralelo se emplea el modelo PRAM (\textit{Parallel Random Access Machine}) \cite{jaja1992parallel}, en su variante CREW (\textit{Concurrent Read, Exclusive Write}). Este modelo permite que varios procesadores lean simultáneamente los datos, mientras cada uno escribe sus resultados en una posición independiente.
 
-La estrategia de paralelización se divide en tres fases principales:
+En el PRAM ideal, se considera un procesador por semilla. El algoritmo se organiza en tres fases:
 \begin{itemize}
-    \item \textbf{Fase Secuencial inicial:} División del dataset original en conjuntos de entrenamiento y prueba, y su difusión a la memoria compartida.
-    \item \textbf{Fase Paralela de Mapeo (Map):} Las $q$ semillas se reparten entre los $p$ procesadores ($q \geq p$), de modo que cada procesador $P_i$ entrena secuencialmente su subconjunto $S_i = \{ s \in S : s \bmod p = i \}$ de $q/p$ semillas (asumiendo que $q$ es múltiplo de $p$ para garantizar un reparto equitativo) y conserva su mejor modelo local. Dado que el entrenamiento de cada $M_s$ es independiente entre semillas, la fase de mapeo constituye un caso de paralelismo \textit{embarrassingly parallel} \cite{farias2022parallelmlps}, un patrón ya explorado para el entrenamiento simultáneo de múltiples perceptrones multicapa.
-    \item \textbf{Fase Paralela de Reducción (Reduce):} Utilizando una estructura de árbol binario invertido, los $p$ procesadores comparan sus mejores exactitudes locales en pares durante $ \log_2 p$ iteraciones para encontrar el modelo óptimo. Esto basado en lo desarrollado en \cite{u2.2}.
+    \item \textbf{Preparación secuencial:} Se divide el conjunto de datos en entrenamiento y prueba, y se deja disponible para la lectura concurrente.
+    \item \textbf{Map:} Cada uno de los procesadores entrena el MLP correspondiente a una semilla y calcula su exactitud. Los entrenamientos son independientes, por lo que esta fase es paralelismo de tareas, también descrito como \textit{embarrassingly parallel} \cite{farias2022parallelmlps}.
+    \item \textbf{Reduce:} Un árbol binario compara los $q$ modelos y sus exactitudes. Para $q$ potencia de dos, la reducción requiere $\log_2 q$ niveles y deja el mejor resultado en una posición común, como lo desarrollado en el curso \cite{u2.2}.
 \end{itemize}
 
-El pseudocódigo formalizado del algoritmo PRAM se define sobre el espacio de semillas $S$:
+El pseudocódigo formalizado del algoritmo PRAM se define como:
 
 \begin{algorithm}[H]
 \caption{Entrenamiento Paralelo de Múltiples MLP (CREW PRAM)}
@@ -182,12 +182,7 @@ El pseudocódigo formalizado del algoritmo PRAM se define sobre el espacio de se
 \end{algorithmic}
 \end{algorithm}
 
-El modelo PRAM (Algoritmo 2) asume conceptualmente una cantidad ilimitada de recursos computacionales, ejecutando $q$ hilos paralelos independientes (uno por semilla). Sin embargo, en un entorno de cómputo real los recursos hardware están acotados a $p$ procesos físicos ($p \le q$). 
-
-Para adaptar esta abstracción teórica a la práctica, la fase de \textit{Map} aplica una distribución por lotes (*batching*): las $q$ semillas se dividen equitativamente entre los $p$ procesos (asumiendo que $q$ es múltiplo de $p$). Cada proceso $P_i$ asume un subconjunto disjunto $S_i = \{ s \in S : s \bmod p = i \}$ y realiza una serie de \textbf{iteraciones secuenciales locales} sobre su lote de $q/p$ semillas. Durante este recorrido, cada proceso entrena los modelos asignados, evalúa su exactitud y conserva únicamente el mejor modelo local ($M_{loc}$) junto con su exactitud ($A_{loc}$).
-
-Al concluir la fase de \textit{Map}, los arreglos en memoria compartida $A$ y $M$ contienen únicamente $p$ elementos (el mejor resultado representativo de cada proceso) en lugar de $q$. En consecuencia, la fase de \textit{Reduce} en la práctica no opera sobre $q$ elementos, sino sobre una entrada de tamaño $p$: el árbol binario realiza $p/2^{d+1}$ comparaciones concurrentes en cada nivel $d$, a lo largo de $\log_2 p$ niveles (asumiendo que $p$ es potencia de 2). 
-
+El Algoritmo~2 describe el PRAM ideal, con $q$ procesadores conceptuales, uno por semilla. La implementación cuenta con $p$ procesos trabajadores, uno por procesador disponible, y asigna a cada proceso $P_i$ las semillas $S_i=\{s\in S:s\bmod p=i\}$. En los experimentos se elige $q$ múltiplo de $p$ para que todos reciban exactamente $q/p$ semillas y realicen la misma cantidad de entrenamientos; así se evita el desbalance de carga que aparecería si algunos procesos recibieran una semilla más que otros. Cada proceso conserva su mejor modelo local, de modo que la reducción final compara $p$ candidatos, no los $q$ modelos. Por ello, la reducción práctica toma $\lceil\log_2 p\rceil$ niveles (y $\log_2 p$ cuando $p$ es potencia de dos, como en las configuraciones medidas).
 Para complementar el algoritmo principal, se detallan a continuación las subrutinas de entrenamiento e inferencia, las cuales evidencian la carga computacional secuencial subyacente de las operaciones matriciales por cada época. Las ecuaciones de propagación hacia adelante y retropropagación siguen la formulación matricial estándar \cite{goodfellow2016deep}, donde $Z^{(l)} = A^{(l-1)}W^{(l)} + b^{(l)}$ representa la transformación lineal de cada capa.
 
 \begin{algorithm}[H]
@@ -225,7 +220,6 @@ Para complementar el algoritmo principal, se detallan a continuación las subrut
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Complejidad algorítmica de \texttt{Entrenar\_MLP}:}
 Las operaciones dominantes en el bucle principal son las multiplicaciones matriciales del \textit{forward pass} ($X_{train} \cdot W^{(1)}$) y \textit{backpropagation} ($X_{train}^T \cdot dZ1$). Dado que involucran dimensiones $(n \times d) \times (d \times h)$ y $(d \times n) \times (n \times h)$ respectivamente, ambas requieren $O(n \cdot d \cdot h)$ operaciones elementales. Las transformaciones intermedias (activaciones, derivadas, sesgos y actualización de pesos) poseen un costo de orden inferior $O(n \cdot h + d \cdot h)$.
     
 Al repetir secuencialmente este proceso durante $T_{max} = E$ épocas sobre una inicialización previa de costo marginal $O(d \cdot h)$, la complejidad temporal total de la subrutina queda expresada como:
@@ -250,29 +244,24 @@ $$T_{\text{Entrenar\_MLP}} = O(E \cdot n \cdot d \cdot h)$$
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Complejidad algorítmica de \texttt{accuracy}:}
 La evaluación del modelo ejecuta únicamente la fase de inferencia sobre el conjunto de prueba de $n_{test}$ muestras. La carga computacional está dominada por la proyección inicial $X_{test} \cdot W^{(1)}$ de dimensión $(n_{test} \times d) \times (d \times h)$, requiriendo $O(n_{test} \cdot d \cdot h)$ operaciones. Como el cálculo subsiguiente de la capa de salida y la umbralización vectorial para determinar aciertos toman tiempos de orden menor ($O(n_{test} \cdot h)$ y $O(n_{test})$), la complejidad total es:
 $$T_{\text{accuracy}} = O(n_{test} \cdot d \cdot h)$$
 
 
 \subsection{Análisis de Métricas y Complejidad Teórica}
 
-Siguiendo el modelo de análisis PRAM, se derivan formalmente las métricas de rendimiento para el entrenamiento paralelo de múltiples Perceptrones Multicapa (MLP) mediante la descomposición en Trabajo, Span, Tiempo paralelo, Speedup y Eficiencia.
+Siguiendo el modelo de análisis PRAM, se derivan las métricas de rendimiento para el entrenamiento paralelo de múltiples Perceptrones Multicapa (MLP) mediante la descomposición en Trabajo, Span, Tiempo paralelo, Speedup y Eficiencia.
 
-\textbf{Parámetros del Problema}
-\begin{itemize}
-    \item $n$: Número de muestras en el conjunto de entrenamiento (\texttt{n\_samples}).
-    \item $d$: Número de características de entrada (\texttt{features}).
-    \item $h$: Número de neuronas en la capa oculta.
-    \item $E$: Número total de épocas de entrenamiento ($T_{max}$).
-    \item $q$: Número de semillas (modelos a entrenar), con $q \geq p$.
-    \item $p$: Número de procesadores.
-    \item $t_c$: Tiempo base para ejecutar una operación aritmética elemental (suma o multiplicación).
-\end{itemize}
+\textbf{Costo de entrenar un MLP.} Sean $n$ el número de muestras de entrenamiento, $d$ el número de características de entrada, $h$ el número de neuronas de la capa oculta y $E$ el número de épocas. Según el pseudocódigo, en cada época la propagación hacia adelante multiplica $X_{train}$, de dimensiones $n\times d$, por $W^{(1)}$, de dimensiones $d\times h$. Esta operación cuesta $O(ndh)$. En la retropropagación, el cálculo del gradiente de $W^{(1)}$ multiplica $X_{train}^{T}$, de dimensiones $d\times n$, por $dZ_1$, de dimensiones $n\times h$, y también cuesta $O(ndh)$. Las demás operaciones de la época tienen un costo de orden igual o menor. Por tanto, cada época cuesta $O(ndh)$. Como el pseudocódigo repite secuencialmente este trabajo durante $E$ épocas, el tiempo de entrenamiento de un MLP es:
+\begin{equation}
+T_{\mathrm{MLP}}=O(E\,n\,d\,h).
+\label{eq:costo_mlp}
+\end{equation}
+
 
 Dado que este estudio se centra en analizar el comportamiento del sistema al variar $q$, $p$ y $n$, los demás parámetros e hiperparámetros del modelo se mantienen constantes. Estos se agrupan en la constante:
 
-$$C = E \cdot d \cdot h \cdot t_c$$
+$$C = E \cdot d \cdot h$$
 
 \noindent de modo que el costo computacional de entrenar un único modelo sobre $n$ muestras queda definido como $O(n \cdot C)$.
 
