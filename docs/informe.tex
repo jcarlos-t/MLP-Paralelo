@@ -252,80 +252,102 @@ $$T_{\text{accuracy}} = O(n_{test} \cdot d \cdot h)$$
 
 Siguiendo el modelo de análisis PRAM, se derivan las métricas de rendimiento para el entrenamiento paralelo de múltiples Perceptrones Multicapa (MLP) mediante la descomposición en Trabajo, Span, Tiempo paralelo, Speedup y Eficiencia.
 
-\textbf{Costo de entrenar un MLP.} Sean $n$ el número de muestras de entrenamiento, $d$ el número de características de entrada, $h$ el número de neuronas de la capa oculta y $E$ el número de épocas. Según el pseudocódigo, en cada época la propagación hacia adelante multiplica $X_{train}$, de dimensiones $n\times d$, por $W^{(1)}$, de dimensiones $d\times h$. Esta operación cuesta $O(ndh)$. En la retropropagación, el cálculo del gradiente de $W^{(1)}$ multiplica $X_{train}^{T}$, de dimensiones $d\times n$, por $dZ_1$, de dimensiones $n\times h$, y también cuesta $O(ndh)$. Las demás operaciones de la época tienen un costo de orden igual o menor. Por tanto, cada época cuesta $O(ndh)$. Como el pseudocódigo repite secuencialmente este trabajo durante $E$ épocas, el tiempo de entrenamiento de un MLP es:
+\subsubsection{Costo de entrenar un MLP}
+
+Sean $n$ el número de muestras de entrenamiento, $d$ el número de características de entrada, $h$ el número de neuronas de la capa oculta y $E$ el número de épocas. Según el pseudocódigo, en cada época la propagación hacia adelante multiplica $X_{train}$, de dimensiones $n\times d$, por $W^{(1)}$, de dimensiones $d\times h$. Esta operación cuesta $O(ndh)$. En la retropropagación, el cálculo del gradiente de $W^{(1)}$ multiplica $X_{train}^{T}$, de dimensiones $d\times n$, por $dZ_1$, de dimensiones $n\times h$, y también cuesta $O(ndh)$. Las demás operaciones de la época tienen un costo de orden igual o menor. Por tanto, cada época cuesta $O(ndh)$. Como el pseudocódigo repite secuencialmente este trabajo durante $E$ épocas, el tiempo de entrenamiento de un MLP es:
 \begin{equation}
 T_{\mathrm{MLP}}=O(E\,n\,d\,h).
 \label{eq:costo_mlp}
 \end{equation}
 
 
-Dado que este estudio se centra en analizar el comportamiento del sistema al variar $q$, $p$ y $n$, los demás parámetros e hiperparámetros del modelo se mantienen constantes. Estos se agrupan en la constante:
+Dado que el análisis varía $q$, $p$ y $n$, se mantienen fijos los demás parámetros del modelo y se agrupan en
+\[
+C=E\,d\,h.
+\]
+Así, $nC$ representa el trabajo de entrenar un MLP sobre $n$ muestras, expresado en unidades proporcionales al costo de las operaciones dominantes.
 
-$$C = E \cdot d \cdot h$$
+\subsubsection{Trabajo}
 
-\noindent de modo que el costo computacional de entrenar un único modelo sobre $n$ muestras queda definido como $O(n \cdot C)$.
+El trabajo total suma las operaciones de los $q$ entrenamientos y las comparaciones de la reducción. Como cada entrenamiento cuesta $O(nEdh)$ y la selección requiere $q-1$ comparaciones constantes, el trabajo total es
+\[
+W=O(qnEdh+q)=O(qnC).
+\]
 
-\textbf{Tiempo secuencial ($T_s$)} \\
-El algoritmo secuencial entrena las $q$ semillas una tras otra. El costo de la evaluación $O(n_{test} \cdot d \cdot h)$ y de la comparación $O(1)$ por semilla es de orden menor frente al entrenamiento ($n \cdot C \gg n_{test}$), por lo que:
-$$T_s = O(q \cdot n \cdot C)$$
+\subsubsection{Span}
 
-\textbf{Trabajo ($W$)} \\
-El trabajo total del algoritmo paralelo es la suma de las operaciones de todos los procesadores: $q$ entrenamientos más $q - 1$ comparaciones. El trabajo no depende de cómo se reparte entre procesadores:
-$$W = O(q \cdot n \cdot C + q) = O(q \cdot n \cdot C)$$
+El span representa el camino crítico del PRAM ideal, con un procesador conceptual por semilla. En ese modelo, el camino incluye el entrenamiento secuencial de un MLP durante $E$ épocas y la reducción en árbol de los $q$ candidatos. Si $q$ es potencia de dos, puede expresarse como
+\[
+T_\infty \approx nC+\log_2 q.
+\]
 
-\textbf{Span ($T_\infty$)} \\
-El Span (camino crítico) es el tiempo con un número ilimitado de procesadores. Está limitado por dos componentes secuenciales:
-\begin{enumerate}
-    \item \textbf{Entrenamiento de un modelo:} las épocas no se pueden paralelizar para un mismo modelo, pues cada época depende de los pesos actualizados en la anterior: $O(n \cdot C)$.
-    \item \textbf{Reducción:} el árbol binario sobre $q$ resultados requiere $O(\log q)$ pasos \cite{jaja1992parallel}.
-\end{enumerate}
-$$T_\infty = O(n \cdot C + \log q)$$
+\subsubsection{Tiempo paralelo}
 
-\textbf{Tiempo Paralelo ($T_p$)} \\
-Aplicando formalmente el Teorema de Brent, el tiempo paralelo $T_p$ al utilizar $p$ procesadores está acotado superiormente por la combinación del Trabajo distribuido y el Span: $T_p = O\left(\frac{W}{p} + T_\infty\right)$. Sustituyendo las expresiones teóricas se obtiene:
+En la implementación con $p$ procesadores, cada uno procesa secuencialmente $q/p$ semillas, suponiendo que $q$ es múltiplo de $p$. Cada procesador conserva su mejor resultado local y la reducción compara los $p$ candidatos resultantes. Para representar el tiempo intra-nodo sin descartar los costos de orden menor, se usa el modelo
+\begin{equation}
+T_p=c_{seq}+c_{spawn}\,p+\frac{q}{p}\,nC+c_{red}\log_2 p.
+\label{eq:tp_explicito}
+\end{equation}
+Aquí, $c_{seq}$ representa el costo fijo no paralelizable de preparación y finalización, como la asignación de buffers, la inicialización de barreras y la consolidación del modelo ganador. El término $c_{spawn}\,p$ aproxima el costo de crear, lanzar y cerrar los $p$ procesos, donde $c_{spawn}$ es el costo por proceso. El término $(q/p)nC$ representa el trabajo de entrenamiento asignado a cada procesador. Finalmente, $c_{red}\log_2 p$ modela la reducción sobre los $p$ resultados locales, con $c_{red}$ como costo efectivo por nivel, incluida la sincronización.
 
-$$T_p = O\left(\frac{q \cdot n \cdot C}{p} + n \cdot C + \log q\right) = O\left(\frac{q \cdot n \cdot C}{p} + \log p\right)$$
+La expresión anterior es el modelo de tiempo utilizado para el análisis; sus coeficientes efectivos pueden estimarse a partir de las mediciones. En el modelo PRAM ideal, que no representa explícitamente la creación y gestión de procesos, la cota asintótica del tiempo paralelo es
+\[
+T_p=O\left(\frac{q}{p}nC+\log p\right).
+\]
 
-El término $\log q$ del Span describe un escenario idealizado con procesadores ilimitados ($p = q$). Sin embargo, en un entorno acotado a $p$ recursos físicos, la fase de \textit{Map} procesa secuencialmente los bloques de $q/p$ semillas por procesador, consolidando el conjunto inicial de $q$ modelos a solo $p$ candidatos locales. De este modo, la fase paralela de \textit{Reduce} procesa una entrada de tamaño $p$, cambiando la cota de la reducción de $\log q$ a $\log p$. Asimismo, dado que el número de semillas es al menos igual al de procesadores ($q \ge p$, lo que implica $\frac{q}{p} \ge 1$), el costo secuencial de entrenar una red ($n \cdot C$) proveniente del Span resulta dominado y absorbido matemáticamente por el término de mapeo distribuido $\frac{q \cdot n \cdot C}{p}$.
+\subsubsection{Speedup}
 
-\textbf{Speedup ($S_p$)} \\
-$$S_p = \frac{T_s}{T_p} = \frac{q \cdot n \cdot C}{\frac{q}{p} \cdot n \cdot C + \log p} = \frac{p}{1 + \dfrac{p \log p}{q \cdot n \cdot C}}$$
+Para comparar con la ejecución secuencial, ambas ejecuciones realizan el mismo trabajo de entrenamiento sobre las $q$ semillas. Se representa el tiempo secuencial mediante
+\[
+T_s=c_{seq}+qnC.
+\]
+El speedup del modelo explícito resulta entonces
+\begin{equation}
+S_p=\frac{T_s}{T_p}
+ =\frac{c_{seq}+qnC}
+ {c_{seq}+c_{spawn}\,p+\frac{q}{p}nC+c_{red}\log_2 p}.
+\label{eq:speedup}
+\end{equation}
 
-\textbf{Eficiencia ($E_f$)} \\
-$$E_f = \frac{S_p}{p} = \frac{1}{1 + \dfrac{p \log p}{q \cdot n \cdot C}}$$
-La eficiencia tiende a 1 cuando el cómputo total $q \cdot n \cdot C$ domina sobre el costo de la reducción $p \log p$.
 
-\subsubsection{Escalabilidad}
+\subsubsection{Eficiencia}
 
-\begin{itemize}
-    \item \textbf{Escalabilidad Fuerte ($q$ y $n$ fijos, $p$ creciente):}\\
-    Mientras $p \le q$, el cómputo total de entrenamiento $q \cdot n \cdot C$ domina holgadamente sobre la fase de reducción $p \log p$, garantizando una aceleración casi lineal ($S_p \approx p$) y una eficiencia óptima ($E_f \approx 1$). Sin embargo, si el problema es pequeño ($q$ y $n$ reducidos) y $p$ aumenta considerablemente, la sobrecarga del árbol de reducción cobra mayor peso relativo. Esto provoca un decaimiento progresivo de la eficiencia ($E_f \to 0$) y la saturación del Speedup máximo alcanzable.
+La eficiencia mide el speedup promedio obtenido por procesador. A partir de la expresión anterior,
+\begin{equation}
+E_f=\frac{S_p}{p}
+ =\frac{1+\frac{c_{seq}}{qnC}}
+ {1+\frac{p\left(c_{seq}+c_{spawn}\,p+c_{red}\log_2 p\right)}{qnC}}.
+\label{eq:eficiencia}
+\end{equation}
 
-    \item \textbf{Escalabilidad Débil ($q$ adaptable según $p$):}\\
-    Para mantener la eficiencia constante ($E_f = \text{constante}$) al aumentar $p$, el volumen de trabajo total debe escalar en la misma proporción que el costo de la reducción:
-    $$E_f = \frac{1}{1 + \dfrac{p \log p}{q \cdot n \cdot C}} = \text{cte} \iff \frac{p \log p}{q \cdot n \cdot C} = \text{cte} \iff q \cdot n \cdot C \propto p \log p$$
+\subsection{Escalabilidad}
 
-    Con $C$ y $n$ fijos, la condición teórica estricta exige que el número total de semillas crezca a un ritmo ligeramente lineal:
-    $$q \propto p \log p$$
-\end{itemize}
+\subsubsection{Escalabilidad fuerte}
 
-\textbf{Impacto del tamaño del dataset ($n$) }
+En escalabilidad fuerte se mantienen fijos $q$ y $n$, y se aumenta $p$ (con $p\le q$ y $p$ divisor de $q$ en las configuraciones medidas). Según el modelo explícito, el trabajo de mapeo disminuye como $q/p$, pero los costos de creación de procesos y reducción aumentan. En la eficiencia, estos costos aparecen como $c_{spawn}p^2/(qnC)$ y $c_{red}p\log_2 p/(qnC)$, además del término lineal asociado a $c_{seq}$. Por ello, añadir procesadores reduce el tiempo solo mientras la disminución del mapeo compense el crecimiento de dichos costos; el modelo permite que el speedup alcance un máximo y luego se degrade si domina la creación de procesos.
 
-Un aspecto fundamental del diseño propuesto es que el paralelismo se aplica a nivel de tareas (sobre el espacio de semillas $q$) y no sobre la partición del dataset ($n$). Dado que cada procesador procesa el conjunto completo de $n$ muestras de manera independiente, el crecimiento de $n$ influye de manera determinante en el rendimiento paralelo:
+\subsubsection{Escalabilidad débil e isoeficiencia}
 
-\begin{enumerate}
-    \item \textbf{Aumento de la densidad de cómputo:} Al incrementar $n$, el costo computacional de entrenar cada modelo ($O(n \cdot C)$) crece de forma lineal. Esto aumenta la grano-granularidad del trabajo en cada hilo, diluyendo el peso relativo del overhead de sincronización y reducción ($O(\log p)$). En consecuencia, un $n$ elevado desplaza el punto de saturación y permite mantener eficiencias elevadas incluso con un número alto de procesadores $p$.
+En escalabilidad débil se aumenta $p$ junto con el tamaño del problema para conservar una eficiencia objetivo. La eficiencia detallada incluye dos costos que dependen del número de procesadores: la creación de procesos, mediante $c_{spawn}p^2/(qnC)$, y la reducción, mediante $c_{red}p\log_2 p/(qnC)$. Para que la eficiencia se mantenga constante, cada cociente debe permanecer acotado; por tanto, cada término impone una condición sobre el crecimiento del trabajo:
+\begin{align*}
+\text{Creación de procesos:}\qquad & qnC=\Theta(p^2),\\
+\text{Reducción:}\qquad & qnC=\Theta(p\log_2 p).
+\end{align*}
+El costo fijo $c_{seq}$ añade una condición lineal, $qnC=\Theta(p)$, que queda dominada por las anteriores. Como $p^2$ crece más rápido que $p\log_2 p$, la condición que prevalece en el modelo completo, con $c_{spawn}>0$, es $qnC=\Theta(p^2)$. Si $n$ y $C$ se mantienen constantes, esto requiere que el número de semillas crezca como
+\[
+q=\Theta(p^2).
+\]
+Si se excluye el costo de creación de procesos y solo se considera la reducción, la condición sería $qnC=\Theta(p\log_2 p)$ y, con $n$ y $C$ fijos, $q=\Theta(p\log_2 p)$. Así, la reducción por sí sola requiere un crecimiento ligeramente mayor que lineal, mientras que en el modelo completo domina el término cuadrático de creación de procesos.
 
-    \item \textbf{Escalabilidad débil ($q$ creciente junto con $p$):} Cuando el trabajo total crece junto con los recursos ($q$ y $n$ escalando con $p$), la eficiencia puede mantenerse constante si el costo de reducción crece a la misma tasa que el trabajo:
-    $$E_f = \frac{1}{1 + \dfrac{\log p}{n \cdot C}}$$
-    En este caso, la pequeña pérdida de eficiencia logarítmica ($\log p$) puede ser completamente compensada si el tamaño del dataset crece a un ritmo equivalente ($n \propto \log p$). Esto demuestra que el volumen de datos $n$ actúa como un factor amortiguador frente al costo de reducción, mejorando la escalabilidad general del sistema.
-\end{enumerate}
+\subsubsection{Impacto del tamaño del dataset ($n$)}
+
+El paralelismo se aplica sobre las semillas: cada entrenamiento procesa el conjunto completo de $n$ muestras. Con $q$ y $p$ fijos, aumentar $n$ incrementa proporcionalmente el trabajo útil $qnC$, mientras los costos de creación, preparación y reducción del modelo permanecen fijos. Por ello, en el modelo la fracción relativa de esos costos disminuye y la eficiencia mejora. Sin embargo, al escalar débilmente con $q/p$ constante, el tamaño de muestra debe crecer linealmente con $p$ para satisfacer la isoeficiencia $qnC=\Theta(p^2)$ del modelo completo. El análisis experimental permite determinar si este comportamiento ideal se mantiene ante la contención de recursos dentro del nodo.
 
 \subsection{Estrategia de Experimentación}
 
 Para verificar el análisis teórico y cumplir con los requisitos del enunciado, se realizaron dos experimentos complementarios sobre el clúster Khipu, cada uno con $p \in \{1, 2, 4, 8, 16, 32\}$ y manteniendo la condición $q \bmod p = 0$:
 
-\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n$ ($n = 10000$ en la primera iteración, $n = 2000$ en la segunda) y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$ (v2 agregó $q = 8$ para el caso de $n$ pequeño) junto con todos los $p$ que lo dividen. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte), mientras que al comparar curvas $q$ crece junto con los recursos (escalabilidad débil). Este barrido permite verificar si la eficiencia se mantiene al aumentar el trabajo total, tal como predice la condición teórica $q \cdot n \cdot C \propto p \log p$.
+\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n$ ($n = 10000$ en la primera iteración, $n = 2000$ en la segunda) y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$ (v2 agregó $q = 8$ para el caso de $n$ pequeño) junto con todos los $p$ que lo dividen. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte), mientras que al comparar curvas $q$ crece junto con los recursos (escalabilidad débil). El análisis contrasta estas tendencias con la isoeficiencia del modelo explícito, $qnC=\Theta(p^2)$, y con la condición ideal que considera solo el costo logarítmico de reducción.
 
 \textbf{Experimento 2 --- Impacto de $n$ ($q$ fijo, barrido $n \times p$):} Se fija $q = 32$ (mínimo que cubre todos los $p$ con al menos un modelo por proceso) y se barre $n \times p$. La primera iteración cubrió $n \in \{5000, 10000, 20000, 40000\}$, tal como pide el enunciado; la segunda extendió el rango hacia abajo ($n \in \{500, 1000, 2000\}$) para explorar el régimen de problemas pequeños, donde los costos fijos pesan más. Este experimento verifica la predicción de que un $n$ elevado amortiza los overheads y desplaza el punto de saturación.
 
@@ -440,7 +462,7 @@ $q$ \textbackslash{} $p$ & 1 & 2 & 4 & 8 & 16 & 32 \\
 
 \textbf{Escalabilidad fuerte (cada curva a $q$ fijo).} Dentro de una curva, el problema no crece y solo aumentan los recursos. El comportamiento es consistente para los cinco valores de $q$: la eficiencia ronda 0.9--1.0 en $p = 2$, se mantiene entre 0.63 y 0.75 en $p = 8$ con speedups de 5--6, cae a $\approx 0.55$ en $p = 16$, y colapsa a $\approx 0.23$--$0.24$ en $p = 32$. Es decir, la escalabilidad fuerte se mantiene de forma aceptable hasta $p \approx 8$, se degrada en $p = 16$ y se rompe abruptamente en $p = 32$: el speedup máximo medido es $S_p \approx 9$ en $p = 16$ y \emph{decrece} a $S_p \approx 7.5$ en $p = 32$ (Figura~\ref{fig:esc_speedup}), por lo que agregar más procesos más allá de ese punto es contraproducente.
 
-\textbf{Escalabilidad débil (comparación entre curvas).} La teoría predecía que si el trabajo total crece a la par de los recursos ($q \cdot n \cdot C \propto p \log p$), la eficiencia se mantendría constante. Los datos muestran un resultado mixto: en el régimen $p \le 16$, la eficiencia es prácticamente la misma para todos los $q$ (banda de $\pm 0.02$ alrededor de $\approx 0.55$--$0.65$ según $p$), lo que indica que duplicar el trabajo total sí compensa el costo de reducción ---la escalabilidad débil se cumple aproximadamente---. En cambio, en $p = 32$ el piso de eficiencia es $\approx 0.23$ para \emph{todos} los $q$ (de 32 a 256 semillas): octuplicar el trabajo no recupera nada, por lo que la condición teórica de escalabilidad débil deja de cumplirse en ese régimen. La razón se analiza a continuación.
+\textbf{Escalabilidad débil (comparación entre curvas).} En el modelo ideal que considera el costo logarítmico de reducción, mantener la eficiencia requiere que el trabajo crezca como $qnC=\Theta(p\log p)$. Al incluir el costo lineal de creación por proceso, el modelo explícito eleva la condición de isoeficiencia a $qnC=\Theta(p^2)$. Los datos muestran un resultado mixto: en el régimen $p \le 16$, la eficiencia es prácticamente la misma para todos los $q$ (banda de $\pm 0.02$ alrededor de $\approx 0.55$--$0.65$ según $p$), lo que indica que aumentar el trabajo compensa parcialmente los costos adicionales. En cambio, en $p = 32$ el piso de eficiencia es $\approx 0.23$ para \emph{todos} los $q$ (de 32 a 256 semillas): octuplicar el trabajo no recupera eficiencia. La razón se analiza a continuación.
 
 \textbf{El cuello de botella no es la reducción.} El desglose por fases (Figuras~\ref{fig:esc_desglose} y~\ref{fig:esc_tother}) muestra que \texttt{t\_reduce} permanece en el orden de milisegundos ($< 4$ ms) y \texttt{t\_spawn} en $\sim$0.2 s incluso en $p = 32$. El componente que crece es la propia fase de mapeo: el tiempo por modelo se infla progresivamente con $p$. Para $q = 32$, $n = 10000$ (costo secuencial por modelo $\approx 0.575$ s), el tiempo efectivo por modelo en cada proceso pasa de $0.58$ s en $p = 1$ a $0.64$ s ($p=2$), $0.78$ s ($p=4$), $0.88$ s ($p=8$), $1.02$ s ($p=16$) y $2.41$ s ($p=32$): una degradación de hasta $4.2\times$. Este fenómeno se confirma con el contador de cambios de contexto voluntarios (\texttt{nivcsw}), que salta de decenas a más de 500--1500 en $p = 32$.
 
