@@ -1,0 +1,7 @@
+T_p = a*ceil(q/p)*n + c_spawn*p + c_red*log2(p) + c_seq  (ajuste conjunto de los casos presentes)
+a      = 2.019748e-04 s/(modelo*muestra)
+c_spawn= -1.821841e-02 s/proceso
+c_red  = 2.409803e-01 s/nivel
+c_seq  = -1.438153e-01 s
+R^2 global = 0.98588
+R^2 escalabilidad = 0.98588

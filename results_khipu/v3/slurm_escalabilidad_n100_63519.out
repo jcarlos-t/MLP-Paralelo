@@ -1,0 +1,236 @@
+nodo: n003  cpus: 32
+# n003 cpus=64 q=32 E=200 h=32 d=20 B=1024 B_par=1024 reps=6 version=parallel tag=33023e83 experimentos=escalabilidad configs=39
+[15:46:50] escalabilidad seq n=100 q=8 T=0.16s s*=0
+[15:46:50] escalabilidad seq n=100 q=8 T=0.16s s*=0
+[15:46:50] escalabilidad seq n=100 q=8 T=0.16s s*=0
+[15:46:50] escalabilidad seq n=100 q=8 T=0.15s s*=0
+[15:46:50] escalabilidad seq n=100 q=8 T=0.16s s*=0
+[15:46:50] escalabilidad seq n=100 q=8 T=0.16s s*=0
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=0
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=2
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=0
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=1
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=2
+[15:46:51] escalabilidad parallel n=100 q=8 p=1 T=0.17s acc=0.8500 s*=0 nivcsw=0
+[15:46:51] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=1
+[15:46:52] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=1
+[15:46:52] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=1
+[15:46:52] escalabilidad parallel n=100 q=8 p=2 T=0.10s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.06s acc=0.8500 s*=0 nivcsw=3
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.07s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.06s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.07s acc=0.8500 s*=0 nivcsw=0
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.06s acc=0.8500 s*=0 nivcsw=3
+[15:46:52] escalabilidad parallel n=100 q=8 p=4 T=0.06s acc=0.8500 s*=0 nivcsw=0
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.07s acc=0.8500 s*=0 nivcsw=5
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.07s acc=0.8500 s*=0 nivcsw=0
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.07s acc=0.8500 s*=0 nivcsw=0
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.08s acc=0.8500 s*=0 nivcsw=2
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.09s acc=0.8500 s*=0 nivcsw=2
+[15:46:53] escalabilidad parallel n=100 q=8 p=8 T=0.09s acc=0.8500 s*=0 nivcsw=2
+[15:46:53] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:54] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:54] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:54] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:55] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:55] escalabilidad seq n=100 q=16 T=0.31s s*=0
+[15:46:55] escalabilidad parallel n=100 q=16 p=1 T=0.32s acc=0.8500 s*=0 nivcsw=1
+[15:46:55] escalabilidad parallel n=100 q=16 p=1 T=0.33s acc=0.8500 s*=0 nivcsw=1
+[15:46:56] escalabilidad parallel n=100 q=16 p=1 T=0.32s acc=0.8500 s*=0 nivcsw=1
+[15:46:56] escalabilidad parallel n=100 q=16 p=1 T=0.33s acc=0.8500 s*=0 nivcsw=1
+[15:46:56] escalabilidad parallel n=100 q=16 p=1 T=0.32s acc=0.8500 s*=0 nivcsw=1
+[15:46:57] escalabilidad parallel n=100 q=16 p=1 T=0.32s acc=0.8500 s*=0 nivcsw=1
+[15:46:57] escalabilidad parallel n=100 q=16 p=2 T=0.19s acc=0.8500 s*=0 nivcsw=2
+[15:46:57] escalabilidad parallel n=100 q=16 p=2 T=0.19s acc=0.8500 s*=0 nivcsw=2
+[15:46:57] escalabilidad parallel n=100 q=16 p=2 T=0.19s acc=0.8500 s*=0 nivcsw=0
+[15:46:58] escalabilidad parallel n=100 q=16 p=2 T=0.20s acc=0.8500 s*=0 nivcsw=2
+[15:46:58] escalabilidad parallel n=100 q=16 p=2 T=0.19s acc=0.8500 s*=0 nivcsw=1
+[15:46:58] escalabilidad parallel n=100 q=16 p=2 T=0.19s acc=0.8500 s*=0 nivcsw=3
+[15:46:58] escalabilidad parallel n=100 q=16 p=4 T=0.11s acc=0.8500 s*=0 nivcsw=2
+[15:46:58] escalabilidad parallel n=100 q=16 p=4 T=0.11s acc=0.8500 s*=0 nivcsw=0
+[15:46:58] escalabilidad parallel n=100 q=16 p=4 T=0.12s acc=0.8500 s*=0 nivcsw=3
+[15:46:58] escalabilidad parallel n=100 q=16 p=4 T=0.11s acc=0.8500 s*=0 nivcsw=0
+[15:46:59] escalabilidad parallel n=100 q=16 p=4 T=0.11s acc=0.8500 s*=0 nivcsw=0
+[15:46:59] escalabilidad parallel n=100 q=16 p=4 T=0.12s acc=0.8500 s*=0 nivcsw=5
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.11s acc=0.8500 s*=0 nivcsw=0
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.11s acc=0.8500 s*=0 nivcsw=4
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.11s acc=0.8500 s*=0 nivcsw=12
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.15s acc=0.8500 s*=0 nivcsw=7
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.11s acc=0.8500 s*=0 nivcsw=0
+[15:46:59] escalabilidad parallel n=100 q=16 p=8 T=0.11s acc=0.8500 s*=0 nivcsw=2
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.09s acc=0.8500 s*=0 nivcsw=4
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.10s acc=0.8500 s*=0 nivcsw=4
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.09s acc=0.8500 s*=0 nivcsw=4
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.11s acc=0.8500 s*=0 nivcsw=4
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.09s acc=0.8500 s*=0 nivcsw=5
+[15:47:00] escalabilidad parallel n=100 q=16 p=16 T=0.10s acc=0.8500 s*=0 nivcsw=4
+[15:47:01] escalabilidad seq n=100 q=32 T=0.65s s*=0
+[15:47:01] escalabilidad seq n=100 q=32 T=0.64s s*=0
+[15:47:02] escalabilidad seq n=100 q=32 T=0.64s s*=0
+[15:47:03] escalabilidad seq n=100 q=32 T=0.64s s*=0
+[15:47:03] escalabilidad seq n=100 q=32 T=0.63s s*=0
+[15:47:04] escalabilidad seq n=100 q=32 T=0.63s s*=0
+[15:47:05] escalabilidad parallel n=100 q=32 p=1 T=0.64s acc=0.8500 s*=0 nivcsw=0
+[15:47:05] escalabilidad parallel n=100 q=32 p=1 T=0.65s acc=0.8500 s*=0 nivcsw=2
+[15:47:06] escalabilidad parallel n=100 q=32 p=1 T=0.66s acc=0.8500 s*=0 nivcsw=1
+[15:47:06] escalabilidad parallel n=100 q=32 p=1 T=0.64s acc=0.8500 s*=0 nivcsw=1
+[15:47:07] escalabilidad parallel n=100 q=32 p=1 T=0.63s acc=0.8500 s*=0 nivcsw=1
+[15:47:08] escalabilidad parallel n=100 q=32 p=1 T=0.64s acc=0.8500 s*=0 nivcsw=1
+[15:47:08] escalabilidad parallel n=100 q=32 p=2 T=0.36s acc=0.8500 s*=0 nivcsw=3
+[15:47:08] escalabilidad parallel n=100 q=32 p=2 T=0.36s acc=0.8500 s*=0 nivcsw=1
+[15:47:09] escalabilidad parallel n=100 q=32 p=2 T=0.37s acc=0.8500 s*=0 nivcsw=1
+[15:47:09] escalabilidad parallel n=100 q=32 p=2 T=0.37s acc=0.8500 s*=0 nivcsw=4
+[15:47:10] escalabilidad parallel n=100 q=32 p=2 T=0.37s acc=0.8500 s*=0 nivcsw=3
+[15:47:10] escalabilidad parallel n=100 q=32 p=2 T=0.36s acc=0.8500 s*=0 nivcsw=1
+[15:47:10] escalabilidad parallel n=100 q=32 p=4 T=0.20s acc=0.8500 s*=0 nivcsw=6
+[15:47:10] escalabilidad parallel n=100 q=32 p=4 T=0.21s acc=0.8500 s*=0 nivcsw=3
+[15:47:11] escalabilidad parallel n=100 q=32 p=4 T=0.21s acc=0.8500 s*=0 nivcsw=0
+[15:47:11] escalabilidad parallel n=100 q=32 p=4 T=0.20s acc=0.8500 s*=0 nivcsw=2
+[15:47:11] escalabilidad parallel n=100 q=32 p=4 T=0.21s acc=0.8500 s*=0 nivcsw=5
+[15:47:11] escalabilidad parallel n=100 q=32 p=4 T=0.21s acc=0.8500 s*=0 nivcsw=5
+[15:47:11] escalabilidad parallel n=100 q=32 p=8 T=0.23s acc=0.8500 s*=0 nivcsw=4
+[15:47:12] escalabilidad parallel n=100 q=32 p=8 T=0.21s acc=0.8500 s*=0 nivcsw=0
+[15:47:12] escalabilidad parallel n=100 q=32 p=8 T=0.21s acc=0.8500 s*=0 nivcsw=0
+[15:47:12] escalabilidad parallel n=100 q=32 p=8 T=0.21s acc=0.8500 s*=0 nivcsw=4
+[15:47:12] escalabilidad parallel n=100 q=32 p=8 T=0.21s acc=0.8500 s*=0 nivcsw=3
+[15:47:13] escalabilidad parallel n=100 q=32 p=8 T=0.21s acc=0.8500 s*=0 nivcsw=6
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.14s acc=0.8500 s*=0 nivcsw=7
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.12s acc=0.8500 s*=0 nivcsw=3
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.17s acc=0.8500 s*=0 nivcsw=21
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.14s acc=0.8500 s*=0 nivcsw=5
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.12s acc=0.8500 s*=0 nivcsw=0
+[15:47:13] escalabilidad parallel n=100 q=32 p=16 T=0.13s acc=0.8500 s*=0 nivcsw=2
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.16s acc=0.8500 s*=0 nivcsw=8
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.16s acc=0.8500 s*=0 nivcsw=3
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.16s acc=0.8500 s*=0 nivcsw=7
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.15s acc=0.8500 s*=0 nivcsw=10
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.16s acc=0.8500 s*=0 nivcsw=5
+[15:47:14] escalabilidad parallel n=100 q=32 p=32 T=0.17s acc=0.8500 s*=0 nivcsw=11
+[15:47:16] escalabilidad seq n=100 q=64 T=1.26s s*=0
+[15:47:17] escalabilidad seq n=100 q=64 T=1.26s s*=0
+[15:47:18] escalabilidad seq n=100 q=64 T=1.26s s*=0
+[15:47:19] escalabilidad seq n=100 q=64 T=1.26s s*=0
+[15:47:21] escalabilidad seq n=100 q=64 T=1.27s s*=0
+[15:47:22] escalabilidad seq n=100 q=64 T=1.26s s*=0
+[15:47:23] escalabilidad parallel n=100 q=64 p=1 T=1.27s acc=0.8500 s*=0 nivcsw=1
+[15:47:25] escalabilidad parallel n=100 q=64 p=1 T=1.27s acc=0.8500 s*=0 nivcsw=1
+[15:47:26] escalabilidad parallel n=100 q=64 p=1 T=1.28s acc=0.8500 s*=0 nivcsw=3
+[15:47:27] escalabilidad parallel n=100 q=64 p=1 T=1.27s acc=0.8500 s*=0 nivcsw=2
+[15:47:28] escalabilidad parallel n=100 q=64 p=1 T=1.26s acc=0.8500 s*=0 nivcsw=1
+[15:47:30] escalabilidad parallel n=100 q=64 p=1 T=1.27s acc=0.8500 s*=0 nivcsw=2
+[15:47:30] escalabilidad parallel n=100 q=64 p=2 T=0.64s acc=0.8500 s*=0 nivcsw=4
+[15:47:31] escalabilidad parallel n=100 q=64 p=2 T=0.65s acc=0.8500 s*=0 nivcsw=0
+[15:47:32] escalabilidad parallel n=100 q=64 p=2 T=0.65s acc=0.8500 s*=0 nivcsw=1
+[15:47:32] escalabilidad parallel n=100 q=64 p=2 T=0.63s acc=0.8500 s*=0 nivcsw=2
+[15:47:33] escalabilidad parallel n=100 q=64 p=2 T=0.65s acc=0.8500 s*=0 nivcsw=2
+[15:47:34] escalabilidad parallel n=100 q=64 p=2 T=0.64s acc=0.8500 s*=0 nivcsw=2
+[15:47:34] escalabilidad parallel n=100 q=64 p=4 T=0.40s acc=0.8500 s*=0 nivcsw=1
+[15:47:34] escalabilidad parallel n=100 q=64 p=4 T=0.39s acc=0.8500 s*=0 nivcsw=4
+[15:47:35] escalabilidad parallel n=100 q=64 p=4 T=0.40s acc=0.8500 s*=0 nivcsw=5
+[15:47:35] escalabilidad parallel n=100 q=64 p=4 T=0.39s acc=0.8500 s*=0 nivcsw=6
+[15:47:36] escalabilidad parallel n=100 q=64 p=4 T=0.39s acc=0.8500 s*=0 nivcsw=1
+[15:47:36] escalabilidad parallel n=100 q=64 p=4 T=0.39s acc=0.8500 s*=0 nivcsw=5
+[15:47:36] escalabilidad parallel n=100 q=64 p=8 T=0.35s acc=0.8500 s*=0 nivcsw=9
+[15:47:37] escalabilidad parallel n=100 q=64 p=8 T=0.37s acc=0.8500 s*=0 nivcsw=5
+[15:47:37] escalabilidad parallel n=100 q=64 p=8 T=0.36s acc=0.8500 s*=0 nivcsw=2
+[15:47:37] escalabilidad parallel n=100 q=64 p=8 T=0.37s acc=0.8500 s*=0 nivcsw=20
+[15:47:38] escalabilidad parallel n=100 q=64 p=8 T=0.36s acc=0.8500 s*=0 nivcsw=7
+[15:47:38] escalabilidad parallel n=100 q=64 p=8 T=0.35s acc=0.8500 s*=0 nivcsw=8
+[15:47:38] escalabilidad parallel n=100 q=64 p=16 T=0.23s acc=0.8500 s*=0 nivcsw=17
+[15:47:39] escalabilidad parallel n=100 q=64 p=16 T=0.27s acc=0.8500 s*=0 nivcsw=33
+[15:47:39] escalabilidad parallel n=100 q=64 p=16 T=0.21s acc=0.8500 s*=0 nivcsw=7
+[15:47:39] escalabilidad parallel n=100 q=64 p=16 T=0.30s acc=0.8500 s*=0 nivcsw=45
+[15:47:39] escalabilidad parallel n=100 q=64 p=16 T=0.23s acc=0.8500 s*=0 nivcsw=12
+[15:47:40] escalabilidad parallel n=100 q=64 p=16 T=0.28s acc=0.8500 s*=0 nivcsw=19
+[15:47:40] escalabilidad parallel n=100 q=64 p=32 T=0.21s acc=0.8500 s*=0 nivcsw=9
+[15:47:40] escalabilidad parallel n=100 q=64 p=32 T=0.22s acc=0.8500 s*=0 nivcsw=26
+[15:47:40] escalabilidad parallel n=100 q=64 p=32 T=0.21s acc=0.8500 s*=0 nivcsw=38
+[15:47:41] escalabilidad parallel n=100 q=64 p=32 T=0.21s acc=0.8500 s*=0 nivcsw=6
+[15:47:41] escalabilidad parallel n=100 q=64 p=32 T=0.20s acc=0.8500 s*=0 nivcsw=14
+[15:47:41] escalabilidad parallel n=100 q=64 p=32 T=0.26s acc=0.8500 s*=0 nivcsw=67
+[15:47:46] escalabilidad seq n=100 q=256 T=5.07s s*=0
+[15:47:51] escalabilidad seq n=100 q=256 T=5.03s s*=0
+[15:47:56] escalabilidad seq n=100 q=256 T=5.03s s*=0
+[15:48:01] escalabilidad seq n=100 q=256 T=5.03s s*=0
+[15:48:06] escalabilidad seq n=100 q=256 T=5.04s s*=0
+[15:48:11] escalabilidad seq n=100 q=256 T=5.02s s*=0
+[15:48:16] escalabilidad parallel n=100 q=256 p=1 T=5.07s acc=0.8500 s*=0 nivcsw=3
+[15:48:21] escalabilidad parallel n=100 q=256 p=1 T=5.05s acc=0.8500 s*=0 nivcsw=4
+[15:48:26] escalabilidad parallel n=100 q=256 p=1 T=5.04s acc=0.8500 s*=0 nivcsw=6
+[15:48:31] escalabilidad parallel n=100 q=256 p=1 T=5.04s acc=0.8500 s*=0 nivcsw=6
+[15:48:37] escalabilidad parallel n=100 q=256 p=1 T=5.05s acc=0.8500 s*=0 nivcsw=5
+[15:48:42] escalabilidad parallel n=100 q=256 p=1 T=5.05s acc=0.8500 s*=0 nivcsw=6
+[15:48:44] escalabilidad parallel n=100 q=256 p=2 T=2.54s acc=0.8500 s*=0 nivcsw=5
+[15:48:47] escalabilidad parallel n=100 q=256 p=2 T=2.54s acc=0.8500 s*=0 nivcsw=7
+[15:48:49] escalabilidad parallel n=100 q=256 p=2 T=2.54s acc=0.8500 s*=0 nivcsw=6
+[15:48:52] escalabilidad parallel n=100 q=256 p=2 T=2.55s acc=0.8500 s*=0 nivcsw=7
+[15:48:54] escalabilidad parallel n=100 q=256 p=2 T=2.54s acc=0.8500 s*=0 nivcsw=8
+[15:48:57] escalabilidad parallel n=100 q=256 p=2 T=2.54s acc=0.8500 s*=0 nivcsw=4
+[15:48:58] escalabilidad parallel n=100 q=256 p=4 T=1.52s acc=0.8500 s*=0 nivcsw=15
+[15:49:00] escalabilidad parallel n=100 q=256 p=4 T=1.50s acc=0.8500 s*=0 nivcsw=8
+[15:49:01] escalabilidad parallel n=100 q=256 p=4 T=1.49s acc=0.8500 s*=0 nivcsw=9
+[15:49:03] escalabilidad parallel n=100 q=256 p=4 T=1.50s acc=0.8500 s*=0 nivcsw=15
+[15:49:04] escalabilidad parallel n=100 q=256 p=4 T=1.49s acc=0.8500 s*=0 nivcsw=12
+[15:49:06] escalabilidad parallel n=100 q=256 p=4 T=1.50s acc=0.8500 s*=0 nivcsw=10
+[15:49:07] escalabilidad parallel n=100 q=256 p=8 T=1.29s acc=0.8500 s*=0 nivcsw=16
+[15:49:09] escalabilidad parallel n=100 q=256 p=8 T=1.33s acc=0.8500 s*=0 nivcsw=33
+[15:49:10] escalabilidad parallel n=100 q=256 p=8 T=1.32s acc=0.8500 s*=0 nivcsw=35
+[15:49:11] escalabilidad parallel n=100 q=256 p=8 T=1.30s acc=0.8500 s*=0 nivcsw=21
+[15:49:13] escalabilidad parallel n=100 q=256 p=8 T=1.42s acc=0.8500 s*=0 nivcsw=16
+[15:49:14] escalabilidad parallel n=100 q=256 p=8 T=1.40s acc=0.8500 s*=0 nivcsw=20
+[15:49:15] escalabilidad parallel n=100 q=256 p=16 T=0.75s acc=0.8500 s*=0 nivcsw=50
+[15:49:16] escalabilidad parallel n=100 q=256 p=16 T=0.79s acc=0.8500 s*=0 nivcsw=76
+[15:49:16] escalabilidad parallel n=100 q=256 p=16 T=0.83s acc=0.8500 s*=0 nivcsw=71
+[15:49:17] escalabilidad parallel n=100 q=256 p=16 T=0.76s acc=0.8500 s*=0 nivcsw=89
+[15:49:18] escalabilidad parallel n=100 q=256 p=16 T=0.77s acc=0.8500 s*=0 nivcsw=70
+[15:49:19] escalabilidad parallel n=100 q=256 p=16 T=0.74s acc=0.8500 s*=0 nivcsw=39
+[15:49:19] escalabilidad parallel n=100 q=256 p=32 T=0.53s acc=0.8500 s*=0 nivcsw=95
+[15:49:20] escalabilidad parallel n=100 q=256 p=32 T=0.63s acc=0.8500 s*=0 nivcsw=161
+[15:49:20] escalabilidad parallel n=100 q=256 p=32 T=0.52s acc=0.8500 s*=0 nivcsw=94
+[15:49:21] escalabilidad parallel n=100 q=256 p=32 T=0.67s acc=0.8500 s*=0 nivcsw=160
+[15:49:22] escalabilidad parallel n=100 q=256 p=32 T=0.55s acc=0.8500 s*=0 nivcsw=108
+[15:49:22] escalabilidad parallel n=100 q=256 p=32 T=0.62s acc=0.8500 s*=0 nivcsw=166
+[15:49:42] escalabilidad seq n=100 q=1024 T=20.10s s*=0
+[15:50:02] escalabilidad seq n=100 q=1024 T=20.11s s*=0
+[15:50:23] escalabilidad seq n=100 q=1024 T=20.09s s*=0
+[15:50:43] escalabilidad seq n=100 q=1024 T=20.10s s*=0
+[15:51:03] escalabilidad seq n=100 q=1024 T=20.09s s*=0
+[15:51:23] escalabilidad seq n=100 q=1024 T=20.12s s*=0
+[15:51:43] escalabilidad parallel n=100 q=1024 p=1 T=20.11s acc=0.8500 s*=0 nivcsw=10
+[15:52:03] escalabilidad parallel n=100 q=1024 p=1 T=20.09s acc=0.8500 s*=0 nivcsw=12
+[15:52:23] escalabilidad parallel n=100 q=1024 p=1 T=20.16s acc=0.8500 s*=0 nivcsw=11
+[15:52:43] escalabilidad parallel n=100 q=1024 p=1 T=20.11s acc=0.8500 s*=0 nivcsw=12
+[15:53:04] escalabilidad parallel n=100 q=1024 p=1 T=20.15s acc=0.8500 s*=0 nivcsw=12
+[15:53:24] escalabilidad parallel n=100 q=1024 p=1 T=20.13s acc=0.8500 s*=0 nivcsw=11
+[15:53:35] escalabilidad parallel n=100 q=1024 p=2 T=11.02s acc=0.8500 s*=0 nivcsw=27
+[15:53:45] escalabilidad parallel n=100 q=1024 p=2 T=10.18s acc=0.8500 s*=0 nivcsw=18
+[15:53:55] escalabilidad parallel n=100 q=1024 p=2 T=10.13s acc=0.8500 s*=0 nivcsw=21
+[15:54:05] escalabilidad parallel n=100 q=1024 p=2 T=10.12s acc=0.8500 s*=0 nivcsw=18
+[15:54:15] escalabilidad parallel n=100 q=1024 p=2 T=10.14s acc=0.8500 s*=0 nivcsw=19
+[15:54:26] escalabilidad parallel n=100 q=1024 p=2 T=10.99s acc=0.8500 s*=0 nivcsw=27
+[15:54:32] escalabilidad parallel n=100 q=1024 p=4 T=5.93s acc=0.8500 s*=0 nivcsw=33
+[15:54:38] escalabilidad parallel n=100 q=1024 p=4 T=5.87s acc=0.8500 s*=0 nivcsw=22
+[15:54:44] escalabilidad parallel n=100 q=1024 p=4 T=6.09s acc=0.8500 s*=0 nivcsw=31
+[15:54:50] escalabilidad parallel n=100 q=1024 p=4 T=5.88s acc=0.8500 s*=0 nivcsw=24
+[15:54:56] escalabilidad parallel n=100 q=1024 p=4 T=5.80s acc=0.8500 s*=0 nivcsw=19
+[15:55:02] escalabilidad parallel n=100 q=1024 p=4 T=5.86s acc=0.8500 s*=0 nivcsw=29
+[15:55:07] escalabilidad parallel n=100 q=1024 p=8 T=4.90s acc=0.8500 s*=0 nivcsw=37
+[15:55:12] escalabilidad parallel n=100 q=1024 p=8 T=5.03s acc=0.8500 s*=0 nivcsw=43
+[15:55:17] escalabilidad parallel n=100 q=1024 p=8 T=5.27s acc=0.8500 s*=0 nivcsw=53
+[15:55:22] escalabilidad parallel n=100 q=1024 p=8 T=4.87s acc=0.8500 s*=0 nivcsw=58
+[15:55:27] escalabilidad parallel n=100 q=1024 p=8 T=4.87s acc=0.8500 s*=0 nivcsw=40
+[15:55:32] escalabilidad parallel n=100 q=1024 p=8 T=4.93s acc=0.8500 s*=0 nivcsw=48
+[15:55:34] escalabilidad parallel n=100 q=1024 p=16 T=2.51s acc=0.8500 s*=0 nivcsw=59
+[15:55:37] escalabilidad parallel n=100 q=1024 p=16 T=2.50s acc=0.8500 s*=0 nivcsw=48
+[15:55:39] escalabilidad parallel n=100 q=1024 p=16 T=2.49s acc=0.8500 s*=0 nivcsw=58
+[15:55:42] escalabilidad parallel n=100 q=1024 p=16 T=2.62s acc=0.8500 s*=0 nivcsw=82
+[15:55:45] escalabilidad parallel n=100 q=1024 p=16 T=2.84s acc=0.8500 s*=0 nivcsw=79
+[15:55:47] escalabilidad parallel n=100 q=1024 p=16 T=2.65s acc=0.8500 s*=0 nivcsw=121
+[15:55:49] escalabilidad parallel n=100 q=1024 p=32 T=1.97s acc=0.8500 s*=0 nivcsw=361
+[15:55:51] escalabilidad parallel n=100 q=1024 p=32 T=1.90s acc=0.8500 s*=0 nivcsw=440
+[15:55:53] escalabilidad parallel n=100 q=1024 p=32 T=1.86s acc=0.8500 s*=0 nivcsw=332
+[15:55:55] escalabilidad parallel n=100 q=1024 p=32 T=1.83s acc=0.8500 s*=0 nivcsw=197
+[15:55:57] escalabilidad parallel n=100 q=1024 p=32 T=2.01s acc=0.8500 s*=0 nivcsw=459
+[15:55:59] escalabilidad parallel n=100 q=1024 p=32 T=1.83s acc=0.8500 s*=0 nivcsw=160
