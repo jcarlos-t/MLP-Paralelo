@@ -321,7 +321,7 @@ E_f=\frac{S_p}{p}
 
 \subsubsection{Función de overhead}
 
-Siguiendo el curso \cite{u6.2}, la función de overhead es la parte del costo paralelo que no corresponde al trabajo secuencial $W=T_s$, es decir, el tiempo que los $p$ procesadores emplean en conjunto por encima de lo que requiere el algoritmo secuencial:
+La función de overhead es la parte del costo paralelo que no corresponde al trabajo secuencial $W=T_s$, es decir, el tiempo que los $p$ procesadores emplean en conjunto por encima de lo que requiere el algoritmo secuencial:
 \begin{equation}
 T_0(W,p)=p\,T_p-W,
 \qquad
@@ -332,7 +332,7 @@ Reemplazando el modelo explícito \eqref{eq:tp_explicito} y $T_s=c_{seq}+qnC$, s
 \[
 T_0=(p-1)\,c_{seq}+c_{spawn}\,p^2+c_{red}\,p\log_2 p,
 \]
-que no depende de $W=qnC$. El modelo predice, por tanto, que el overhead es un costo fijo de gestión y sincronización: al aumentar $q$ o $n$, el cociente $T_0/W$ disminuye y la eficiencia se acerca a 1. Las condiciones de isoeficiencia de la siguiente subsección se obtienen de exigir $W=K\,T_0(W,p)$ con $K$ constante \cite{u6.2}.
+que no depende de $W=qnC$. El modelo predice, por tanto, que el overhead es un costo fijo de gestión y sincronización: al aumentar $q$ o $n$, el cociente $T_0/W$ disminuye y la eficiencia se acerca a 1. Las condiciones de isoeficiencia de la siguiente subsección se obtienen de exigir $W=K\,T_0(W,p)$ con $K$ constante.
 
 \subsection{Escalabilidad}
 
@@ -694,12 +694,6 @@ URL: \url{https://arxiv.org/abs/2011.00243}.
 José Fiestas.
 \textit{U2.2 Diseño en paralelo PRAM\_01 apuntes}.
 Computación Paralela y Distribuida, UTEC, 2026-II.
-
-\bibitem{u6.2}
-José Fiestas.
-\textit{U6.2 Performance: escalabilidad}.
-Computación Paralela y Distribuida, UTEC, 2026-II.
-
 \bibitem{claude}
 Anthropic.
 \textit{Claude} (modelo de lenguaje). Asistente de IA utilizado en setiembre--noviembre 2026.
