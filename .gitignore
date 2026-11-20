@@ -9,3 +9,9 @@ khipu_docs
 #figs
 context.md
 imgtest
+
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
