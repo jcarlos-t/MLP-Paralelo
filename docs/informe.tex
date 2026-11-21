@@ -287,7 +287,7 @@ En la implementación con $p$ procesadores, cada uno procesa secuencialmente $q/
 T_p=c_{seq}+c_{spawn}\,p+\frac{q}{p}\,nC+c_{red}\log_2 p.
 \label{eq:tp_explicito}
 \end{equation}
-Aquí, $c_{seq}$ representa el costo fijo no paralelizable de preparación y finalización, como la asignación de buffers, la inicialización de barreras y la consolidación del modelo ganador. El término $c_{spawn}\,p$ aproxima el costo de crear, lanzar y cerrar los $p$ procesos, donde $c_{spawn}$ es el costo por proceso. El término $(q/p)nC$ representa el trabajo de entrenamiento asignado a cada procesador. Finalmente, $c_{red}\log_2 p$ modela la reducción sobre los $p$ resultados locales, con $c_{red}$ como costo efectivo por nivel, incluida la sincronización.
+Aquí, $c_{seq}$ representa el costo fijo de preparación común a la versión secuencial y a la paralela: la generación del conjunto de datos, su partición en entrenamiento y prueba y su estandarización. El término $c_{spawn}\,p$ agrupa los costos de gestión propios de la ejecución paralela: crear, lanzar y cerrar los $p$ procesos, junto con la asignación de los buffers compartidos y la barrera de sincronización, cuyo tamaño crece con $p$; $c_{spawn}$ es el costo por proceso. El término $(q/p)nC$ representa el trabajo de entrenamiento asignado a cada procesador. Finalmente, $c_{red}\log_2 p$ modela la reducción sobre los $p$ resultados locales, con $c_{red}$ como costo efectivo por nivel, incluida la sincronización.
 
 La expresión anterior es el modelo de tiempo utilizado para el análisis; sus coeficientes efectivos pueden estimarse a partir de las mediciones. En el modelo PRAM ideal, que no representa explícitamente la creación y gestión de procesos, la cota asintótica del tiempo paralelo es
 \[
@@ -296,7 +296,7 @@ T_p=O\left(\frac{q}{p}nC+\log p\right).
 
 \subsubsection{Speedup}
 
-Para comparar con la ejecución secuencial, ambas ejecuciones realizan el mismo trabajo de entrenamiento sobre las $q$ semillas. Se representa el tiempo secuencial mediante
+Para comparar con la ejecución secuencial, ambas ejecuciones realizan la misma preparación de datos y el mismo trabajo de entrenamiento sobre las $q$ semillas. Se representa el tiempo secuencial mediante
 \[
 T_s=c_{seq}+qnC.
 \]
@@ -332,7 +332,24 @@ Reemplazando el modelo explícito \eqref{eq:tp_explicito} y $T_s=c_{seq}+qnC$, s
 \[
 T_0=(p-1)\,c_{seq}+c_{spawn}\,p^2+c_{red}\,p\log_2 p,
 \]
-que no depende de $W=qnC$. El modelo predice, por tanto, que el overhead es un costo fijo de gestión y sincronización: al aumentar $q$ o $n$, el cociente $T_0/W$ disminuye y la eficiencia se acerca a 1. Las condiciones de isoeficiencia de la siguiente subsección se obtienen de exigir $W=K\,T_0(W,p)$ con $K$ constante.
+que no depende de $W=qnC$. Bajo este modelo el overhead es un costo fijo de gestión y sincronización: al aumentar $q$ o $n$, el cociente $T_0/W$ disminuye y la eficiencia se acerca a 1.
+
+Esta conclusión descansa en un supuesto implícito del modelo PRAM: que el costo por muestra $C$ es el mismo con un proceso activo que con $p$ procesos activos, es decir, que los procesos no compiten por recursos del nodo. En una máquina real los $p$ procesos comparten el ancho de banda de memoria, la caché de último nivel, la frecuencia de reloj del procesador (que disminuye al activarse más núcleos) y, si $p$ supera el número de núcleos físicos, las unidades de ejecución de cada núcleo. Para representar este efecto se introduce un factor de contención $\kappa(p)\ge 1$, con $\kappa(1)=1$, que multiplica el costo de mapeo:
+\begin{equation}
+T_p=c_{seq}+c_{spawn}\,p+\kappa(p)\,\frac{q}{p}\,nC+c_{red}\log_2 p.
+\label{eq:tp_kappa}
+\end{equation}
+Con este modelo, la función de overhead se separa en dos componentes:
+\begin{equation}
+T_0=\underbrace{\bigl(\kappa(p)-1\bigr)\,W}_{\text{contención}}
++\underbrace{(p-1)\,c_{seq}+c_{spawn}\,p^2+c_{red}\,p\log_2 p}_{\text{gestión y sincronización}},
+\label{eq:overhead_kappa}
+\end{equation}
+y la eficiencia queda
+\[
+E_f=\frac{1}{\kappa(p)+T_0^{\mathrm{fijo}}/W}\;\le\;\frac{1}{\kappa(p)},
+\]
+donde $T_0^{\mathrm{fijo}}$ es la componente de gestión y sincronización. La componente de contención es proporcional al trabajo: crece al aumentar $q$ o $n$ en la misma proporción que $W$, por lo que no se amortiza. El modelo PRAM corresponde al caso particular $\kappa(p)=1$. Las condiciones de isoeficiencia de la siguiente subsección se obtienen de exigir $W=K\,T_0(W,p)$ con $K$ constante, primero en el caso ideal y luego con contención.
 
 \subsection{Escalabilidad}
 
@@ -342,7 +359,7 @@ En escalabilidad fuerte se mantienen fijos $q$ y $n$, y se aumenta $p$ (con $p\l
 
 \subsubsection{Escalabilidad débil e isoeficiencia}
 
-En escalabilidad débil se aumenta $p$ junto con el tamaño del problema para conservar una eficiencia objetivo. La eficiencia detallada incluye dos costos que dependen del número de procesadores: la creación de procesos, mediante $c_{spawn}p^2/(qnC)$, y la reducción, mediante $c_{red}p\log_2 p/(qnC)$. Para que la eficiencia se mantenga constante, cada cociente debe permanecer acotado; por tanto, cada término impone una condición sobre el crecimiento del trabajo:
+La escalabilidad débil evalúa el caso particular en que el problema crece en la misma proporción que los recursos, con carga por proceso constante (ley de Gustafson). Como el tamaño del problema es $W=qnC$, con $n$ fijo esto equivale a mantener $q/p$ constante: cada proceso entrena siempre el mismo número de modelos y, si el overhead fuera despreciable, $T_p$ se mantendría constante y $E_f\approx 1$. La isoeficiencia estudia la relación general: cómo debe crecer $W$ con $p$ para conservar una eficiencia objetivo. La eficiencia detallada incluye dos costos que dependen del número de procesadores: la creación de procesos, mediante $c_{spawn}p^2/(qnC)$, y la reducción, mediante $c_{red}p\log_2 p/(qnC)$. Para que la eficiencia se mantenga constante, cada cociente debe permanecer acotado; por tanto, cada término impone una condición sobre el crecimiento del trabajo:
 \begin{align*}
 \text{Creación de procesos:}\qquad & qnC=\Theta(p^2),\\
 \text{Reducción:}\qquad & qnC=\Theta(p\log_2 p).
@@ -353,15 +370,21 @@ q \propto p^2
 \]
 Si se excluye el costo de creación de procesos y solo se considera la reducción, la condición sería $qnC=\Theta(p\log_2 p)$ y, con $n$ y $C$ fijos, $q=\Theta(p\log_2 p)$. Así, la reducción por sí sola requiere un crecimiento ligeramente mayor que lineal, mientras que en el modelo completo domina el término cuadrático de creación de procesos.
 
+Estas condiciones suponen $\kappa(p)=1$. Con contención, la ecuación~\eqref{eq:overhead_kappa} convierte la isoeficiencia $W=K\,T_0$ en
+\[
+W\bigl[1-K\,(\kappa(p)-1)\bigr]=K\,T_0^{\mathrm{fijo}},
+\]
+que solo tiene solución con $W>0$ si $\kappa(p)<1+1/K$, es decir, si la eficiencia objetivo $E^{*}=1/(1+1/K)$ cumple $E^{*}<1/\kappa(p)$. Mientras se cumpla, el crecimiento de $W$ que exige la isoeficiencia sigue las condiciones anteriores, amplificado por el factor $1/[1-K(\kappa(p)-1)]$. Cuando $\kappa(p)\ge 1/E^{*}$, ningún crecimiento de $q$ ni de $n$ alcanza la eficiencia objetivo, porque el overhead de contención crece al mismo ritmo que el trabajo. La escalabilidad débil queda así limitada por $1/\kappa(p)$, una cota que depende del hardware y no del problema.
+
 \subsubsection{Impacto del tamaño del dataset ($n$)}
 
-El paralelismo se aplica sobre las semillas: cada entrenamiento procesa el conjunto completo de $n$ muestras. Con $q$ y $p$ fijos, aumentar $n$ incrementa proporcionalmente el trabajo útil $qnC$, mientras los costos de creación, preparación y reducción del modelo permanecen fijos. Por ello, en el modelo la fracción relativa de esos costos disminuye y la eficiencia mejora. Sin embargo, al escalar débilmente con $q/p$ constante, el tamaño de muestra debe crecer linealmente con $p$ para satisfacer la isoeficiencia $qnC=\Theta(p^2)$ del modelo completo. El análisis experimental permite determinar si este comportamiento ideal se mantiene ante la contención de recursos dentro del nodo.
+El paralelismo se aplica sobre las semillas: cada entrenamiento procesa el conjunto completo de $n$ muestras. Con $q$ y $p$ fijos, aumentar $n$ incrementa proporcionalmente el trabajo útil $qnC$, mientras los costos de creación, preparación y reducción del modelo permanecen fijos. Por ello, la fracción relativa de esos costos disminuye y la eficiencia se acerca a $1/\kappa(p)$, que es 1 solo en ausencia de contención. Sin embargo, al escalar débilmente con $q/p$ constante, el tamaño de muestra debe crecer linealmente con $p$ para satisfacer la isoeficiencia $qnC=\Theta(p^2)$ del modelo completo. El análisis experimental permite determinar si este comportamiento ideal se mantiene ante la contención de recursos dentro del nodo.
 
 \subsection{Estrategia de Experimentación}
 
 Para verificar el análisis teórico y cumplir con los requisitos del enunciado, se realizaron dos experimentos complementarios en el clúster Khipu, con $p \in \{1, 2, 4, 8, 16, 32\}$ y manteniendo la condición $q \bmod p = 0$:
 
-\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n = 10000$ y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$, junto con todos los valores de $p$ que dividen cada $q$. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte), mientras que al comparar curvas $q$ crece junto con los recursos (escalabilidad débil). El análisis contrasta estas tendencias con la isoeficiencia del modelo explícito, $qnC=\Theta(p^2)$, y con la condición ideal que considera solo el costo logarítmico de reducción.
+\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n = 10000$ y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$, junto con todos los valores de $p$ que dividen cada $q$. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte); las configuraciones con $q/p$ constante, que atraviesan las curvas, miden la escalabilidad débil, y la comparación entre curvas a $p$ fijo permite contrastar la isoeficiencia. El análisis contrasta estas tendencias con la isoeficiencia del modelo explícito, $qnC=\Theta(p^2)$, y con la condición ideal que considera solo el costo logarítmico de reducción.
 
 \textbf{Experimento 2 --- Impacto de $n$ ($q$ fijo, barrido $n \times p$):} Se fija $q = 32$ y se barre $n \in \{5000, 10000, 20000, 40000\}$ junto con los valores de $p$ que dividen a $q$. Este experimento verifica la predicción de que un $n$ elevado amortiza los overheads y desplaza el punto de saturación.
 
@@ -415,7 +438,7 @@ sobre todas las mediciones de $T_p$ de los dos primeros experimentos, de modo qu
 \begin{table}[H]
 \centering
 \small
-\caption{Coeficientes del ajuste de $T_p^{teo}$ por experimento.}
+\caption{Coeficientes del ajuste del modelo sin contención~\eqref{eq:tpeo} por experimento.}
 \begin{tabular}{lcccc}
 \toprule
 Experimento (nodo) & $a$ & $c_{spawn}$ & $c_{red}$ & $c_{seq}$ \\
@@ -429,11 +452,49 @@ Complementario (\texttt{n005}, $n=2000$) & $6.64 \times 10^{-5}$ & $3.1 \times 1
 
 Ambos ajustes explican más del 98\% de la variación observada en $T_p$ ($R^2 = 0.986$ en el experimento principal y $R^2 = 0.988$ en el complementario), por lo que el modelo representa bien la tendencia general de los tiempos medidos. En el término $a\lceil q/p\rceil n$, $\lceil q/p\rceil$ indica cuántos modelos entrena cada proceso y $n$ cuántas muestras procesa cada modelo; por ello, $a$ mide el costo por muestra y por modelo, en segundos. Así, para el experimento principal con $n=10000$, $a n = 5.80\times10^{-5}\times10000 = 0.580$ s es el tiempo estimado para entrenar un modelo completo. Esta estimación concuerda con una medición independiente: para $q=32$, el tiempo secuencial medido fue $T_s\approx18.4$ s, es decir, $T_s/q\approx0.575$ s por modelo. La cercanía entre ambos valores respalda esta interpretación de $a$.
 
-Un matiz importante: el término $c_{red} \log_2 p$ del modelo teórico no corresponde al tiempo real de la fase de reducción. Las marcas de tiempo muestran que \texttt{t\_reduce} es del orden de milisegundos incluso en $p = 32$ ($\sim$3 ms), mientras que el ajuste requiere $c_{red} \log_2 32 \approx 6.2$ s para describir los datos. En la aproximación teórica, el término logarítmico absorbe los costos de sincronización por nivel (barreras, re-partición de trabajo y esperas de los procesos rápidos), no el árbol de comparaciones en sí. Esta distinción es clave para interpretar el overhead observado.
+Un matiz importante: el término $c_{red} \log_2 p$ del modelo teórico no corresponde al tiempo real de la fase de reducción. Las marcas de tiempo muestran que \texttt{t\_reduce} es del orden de milisegundos incluso en $p = 32$ ($\sim$3 ms), mientras que el ajuste requiere $c_{red} \log_2 32 \approx 6.2$ s para describir los datos. En el ajuste, el término logarítmico no representa el árbol de comparaciones: absorbe la degradación del mapeo por contención, que este modelo no tiene dónde representar. Por la misma razón $c_{spawn}$ sale negativo en el experimento principal. El ajuste con contención, al final de esta subsección, confirma esta lectura.
 
-\textbf{Interpretación de las constantes.} El coeficiente $a$ mide el costo efectivo por muestra y modelo en el hardware usado: $a \cdot E \cdot d \cdot h$ puede compararse con el $t_c$ teórico del análisis PRAM. La diferencia entre experimentos ($a$ 15\% mayor en el nodo \texttt{n005} que en \texttt{n003}) refleja que los nodos de la partición \texttt{standard} no son homogéneos en rendimiento, lo que valida la decisión de ajustar por experimento y no comparar tiempos absolutos entre corridas. El coeficiente $c_{seq}$ representa el costo fijo por ejecución paralela (consolidación del resultado, asignación de buffers), del mismo orden que el residual no atribuido a las fases medidas. El coeficiente $c_{spawn}$ resultó pequeño en ambos ajustes ($\approx 3$ ms/proceso en el experimento complementario y ligeramente negativo en el principal): el costo real de creación de procesos es sublineal en $p$ y queda en gran parte absorbido por el término logarítmico, por lo que el modelo lineal $c_{spawn}\,p$ actúa como corrección menor más que como término dominante. Esto es consistente con las marcas de tiempo: el tiempo total de creación de procesos es de solo $\sim$3--220 ms, no por proceso.
+\textbf{Interpretación de las constantes.} El coeficiente $a$ mide el costo efectivo por muestra y modelo en el hardware usado, es decir, el valor medido de $C = E \cdot d \cdot h \cdot t_c$: el cociente $a/(E \cdot d \cdot h)$ puede compararse con el $t_c$ teórico del análisis PRAM ($\approx 4.5 \times 10^{-10}$~s en el experimento principal). La diferencia entre experimentos ($a$ 15\% mayor en el nodo \texttt{n005} que en \texttt{n003}) refleja que los nodos de la partición \texttt{standard} no son homogéneos en rendimiento, lo que valida la decisión de ajustar por experimento y no comparar tiempos absolutos entre corridas. El coeficiente $c_{seq}$ representa el costo fijo de preparación común a ambas versiones; sus valores ajustados son menores a 0.1~s ($7.7\times10^{-3}$ y $8.4\times10^{-2}$~s), despreciables frente al tiempo de mapeo en todas las configuraciones. El coeficiente $c_{spawn}$ resultó pequeño en ambos ajustes ($\approx 3$ ms/proceso en el experimento complementario y ligeramente negativo en el principal): el costo real de creación de procesos es sublineal en $p$ y queda en gran parte absorbido por el término logarítmico, por lo que el modelo lineal $c_{spawn}\,p$ actúa como corrección menor más que como término dominante. Esto es consistente con las marcas de tiempo: el tiempo total de creación de procesos es de solo $\sim$3--220 ms, no por proceso.
 
-\textbf{Limitación del ajuste global.} Aunque el $R^2$ es alto, los residuos están estructurados: el modelo no puede capturar que el costo por proceso crece con $p$ de forma superlineal en el régimen de contención (analizado en la Subsección~\ref{subsec:kappa}). En otras palabras, la curva $T_p^{teo}$ es una referencia útil del costo de mapeo más términos de gestión y sincronización, pero no modela la degradación de la fase de mapeo misma cuando los procesos compiten por recursos. Esto se evidencia en la Figura~\ref{fig:esc_tiempos}: para $q$ pequeño y $p$ grande la curva teórica sobreestima $T_p$ (los términos fijos dominan), mientras que para $q$ grande y $p = 32$ la subestima (la contención real supera al término logarítmico).
+\textbf{Limitación del ajuste sin contención.} Aunque el $R^2$ es alto, el error relativo medio es de 46\% en el experimento principal y de 85\% en el complementario, con errores de hasta 3--7 veces en las configuraciones de $T_p$ pequeño: el $R^2$ lo dominan los tiempos grandes. Los residuos están estructurados, porque el modelo no puede representar que el costo de mapeo por modelo crece con $p$ (Subsección~\ref{subsec:kappa}). Tampoco basta con hacer más flexible la parte fija: si se reemplazan $c_{spawn}\,p+c_{red}\log_2 p+c_{seq}$ por una constante libre para cada $p$, es decir, cualquier overhead fijo que dependa de $p$, el error relativo medio sigue en 44\% y 88\%. Lo que el modelo necesita es que la pendiente del término de mapeo cambie con $p$.
+
+\textbf{Ajuste con contención (modelo definitivo).} Siguiendo la ecuación~\eqref{eq:tp_kappa}, el modelo en segundos con contención es
+\begin{equation}
+T_p^{teo}(q, n, p) = \kappa(p)\cdot a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n + b_p,
+\label{eq:tpeo_cont}
+\end{equation}
+donde $a$ es el costo por muestra y modelo con un solo proceso, $\kappa(p)$ es el factor de contención con $\kappa(1)=1$ y $b_p$ agrupa los costos fijos de esa configuración ($c_{seq}+c_{spawn}\,p+c_{red}\log_2 p$). Para cada $p$ se ajusta una recta en $\lceil q/p\rceil n$ con todas las mediciones de los dos primeros casos; $a$ es la pendiente con $p=1$ y $\kappa(p)$ es el cociente entre la pendiente con $p$ procesos y $a$. La Tabla~\ref{tab:ajuste_kappa} resume el resultado.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Ajuste del modelo con contención~\eqref{eq:tpeo_cont} y comparación con el modelo sin contención~\eqref{eq:tpeo}. El error en $E_f$ compara la eficiencia medida con $T_s/(p\,T_p^{teo})$.}
+\label{tab:ajuste_kappa}
+\begin{tabular}{lcccccc}
+\toprule
+& $p=1$ & $p=2$ & $p=4$ & $p=8$ & $p=16$ & $p=32$ \\
+\midrule
+$\kappa(p)$, principal (\texttt{n003})      & 1.00 & 1.11 & 1.39 & 1.58 & 1.79 & 4.31 \\
+$\kappa(p)$, complementario (\texttt{n005}) & 1.00 & 1.10 & 1.28 & 1.46 & 1.71 & 4.39 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{Principal (\texttt{n003})} & \multicolumn{2}{c}{Complementario (\texttt{n005})} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+& sin contención & con $\kappa(p)$ & sin contención & con $\kappa(p)$ \\
+\midrule
+$R^2$                          & 0.986 & 0.9999 & 0.988 & 0.9997 \\
+Error relativo medio en $T_p$  & 46\%  & 1.3\%  & 85\%  & 6.0\%  \\
+Error relativo máximo en $T_p$ & 338\% & 5\%    & 673\% & 68\%   \\
+Error medio en $E_f$           & 0.121 & 0.008  & 0.154 & 0.035  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El modelo con contención reproduce los tiempos medidos con un error medio de 1.3\% en el experimento principal, frente a 46\% del modelo sin contención. Tiene más parámetros (una recta por $p$), pero la comparación anterior muestra que la mejora no viene de la cantidad de parámetros sino de la estructura: la pendiente debe crecer con $p$. Los valores de $\kappa(p)$ coinciden en los dos nodos hasta $p = 16$, con diferencias de hasta 0.11, y también con la pendiente de la función de overhead de la Subsección~\ref{subsec:kappa}. Las constantes $b_p$ quedan entre $-0.06$ y $0.6$~s y no se interpretan individualmente: con $n \ge 2000$ los costos fijos son tan pequeños frente al mapeo que el ajuste no los identifica con precisión; su peso se analiza con el régimen extremo. La curva teórica de la Figura~\ref{fig:esc_tiempos} corresponde a este modelo.
 
 \subsection{Análisis de escalabilidad ($n$ fija, barrido $q \times p$)}
 
@@ -442,7 +503,7 @@ La Figura~\ref{fig:esc_tiempos} muestra $T_p$ vs.\ $p$ del experimento principal
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{figs/v1/escalabilidad_tiempos.png}
-\caption{Tiempo paralelo $T_p$ vs.\ $p$ ($n = 10000$, experimento principal), con el ajuste teórico $T_p^{teo}$ por cada $q$.}
+\caption{Tiempo paralelo $T_p$ vs.\ $p$ ($n = 10000$, experimento principal), con el ajuste del modelo con contención~\eqref{eq:tpeo_cont} por cada $q$ (líneas discontinuas).}
 \label{fig:esc_tiempos}
 \end{figure}
 
@@ -462,7 +523,7 @@ La Figura~\ref{fig:esc_tiempos} muestra $T_p$ vs.\ $p$ del experimento principal
 
 \begin{table}[H]
 \centering
-\caption{Eficiencia experimental $E_f = S_p/p$ por $(q, p)$, experimento principal ($n = 10000$).}
+\caption{Eficiencia experimental $E_f = S_p/p = T_s/(p\,T_p)$ (ecuaciones~\eqref{eq:speedup} y~\eqref{eq:eficiencia} con los tiempos medidos) por $(q, p)$, experimento principal ($n = 10000$).}
 \label{tab:ef_v1}
 \begin{tabular}{lcccccc}
 \toprule
@@ -479,9 +540,28 @@ $q$ \textbackslash{} $p$ & 1 & 2 & 4 & 8 & 16 & 32 \\
 
 \textbf{Escalabilidad fuerte (cada curva a $q$ fijo).} Dentro de una curva, el problema no crece y solo aumentan los recursos. El comportamiento es consistente para los cinco valores de $q$: la eficiencia ronda 0.9--1.0 en $p = 2$, se mantiene entre 0.63 y 0.75 en $p = 8$ con speedups de 5--6, cae a $\approx 0.55$ en $p = 16$, y colapsa a $\approx 0.23$--$0.24$ en $p = 32$. Es decir, la escalabilidad fuerte se mantiene de forma aceptable hasta $p \approx 8$, se degrada en $p = 16$ y se rompe abruptamente en $p = 32$: el speedup máximo medido es $S_p \approx 9$ en $p = 16$ y \emph{decrece} a $S_p \approx 7.5$ en $p = 32$ (Figura~\ref{fig:esc_speedup}), por lo que agregar más procesos más allá de ese punto es contraproducente.
 
-\textbf{Escalabilidad débil (comparación entre curvas).} En el modelo ideal que considera el costo logarítmico de reducción, mantener la eficiencia requiere que el trabajo crezca como $qnC=\Theta(p\log p)$. Al incluir el costo lineal de creación por proceso, el modelo explícito eleva la condición de isoeficiencia a $qnC=\Theta(p^2)$. Los datos muestran un resultado mixto: en el régimen $p \le 16$, la eficiencia es prácticamente la misma para todos los $q$ (banda de $\pm 0.02$ alrededor de $\approx 0.55$--$0.65$ según $p$), lo que indica que aumentar el trabajo compensa parcialmente los costos adicionales. En cambio, en $p = 32$ el piso de eficiencia es $\approx 0.23$ para \emph{todos} los $q$ (de 32 a 256 semillas): octuplicar el trabajo no recupera eficiencia. La configuración límite $q = p$ (un solo modelo por proceso) ilustra el fallo de la isoeficiencia: en el experimento complementario ($n = 2000$), $E_f = 0.59$, $0.47$ y $0.24$ para $p = 8$, $16$ y $32$, muy por debajo del $E_f \approx 1$ que predice el modelo ideal cuando el trabajo por procesador iguala al overhead. La razón del desvío se analiza a continuación.
+\textbf{Escalabilidad débil (carga por proceso constante).} La escalabilidad débil exige que el problema crezca en la misma proporción que los recursos; con $n$ fijo, esto corresponde a las configuraciones con $q/p$ constante, en las que cada proceso entrena siempre el mismo número de modelos. Si el overhead fuera despreciable, $T_p$ se mantendría constante y la eficiencia permanecería cerca de 1. La Tabla~\ref{tab:debil} muestra que no ocurre así.
 
-\textbf{El cuello de botella no es la reducción.} El desglose por fases muestra que el tiempo de la reducción permanece en el orden de milisegundos ($< 4$ ms incluso en $p = 32$) y la creación de procesos en $\sim$0.2 s como máximo. El componente que crece es la propia fase de mapeo: el tiempo por modelo se infla progresivamente con $p$. Para $q = 32$, $n = 10000$ (costo secuencial por modelo $\approx 0.575$ s), el tiempo efectivo por modelo en cada proceso pasa de $0.58$ s en $p = 1$ a $0.64$ s ($p=2$), $0.78$ s ($p=4$), $0.88$ s ($p=8$), $1.02$ s ($p=16$) y $2.41$ s ($p=32$): una degradación de hasta $4.2\times$. Este fenómeno se confirma con el contador de cambios de contexto voluntarios (\texttt{nivcsw}), que salta de decenas a más de 500--1500 en $p = 32$.
+\begin{table}[H]
+\centering
+\caption{Escalabilidad débil: eficiencia $E_f = S_p/p = T_s/(p\,T_p)$ (primera igualdad de las ecuaciones~\eqref{eq:speedup} y~\eqref{eq:eficiencia}, evaluada con los tiempos medidos) en las configuraciones con $q/p$ constante (experimento principal, $n = 10000$). $T_s$ es el tiempo de la versión secuencial con las mismas $q$ semillas. Los guiones corresponden a valores de $q$ fuera de la rejilla medida ($16 \le q \le 256$).}
+\label{tab:debil}
+\begin{tabular}{lcccccc}
+\toprule
+& $p=1$ & $p=2$ & $p=4$ & $p=8$ & $p=16$ & $p=32$ \\
+\midrule
+$E_f$, $q/p = 16$ & 1.00 & 0.90 & 0.75 & 0.64 & 0.56 & -- \\
+$E_f$, $q/p = 8$  & --   & 0.88 & 0.73 & 0.65 & 0.56 & 0.23 \\
+$E_f$, $q/p = 4$  & --   & --   & 0.74 & 0.65 & 0.55 & 0.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Con exactamente la misma carga por proceso (16 modelos), $T_p$ crece de 9.3 a 16.0~s entre $p = 1$ y $p = 16$, y la eficiencia cae alrededor de un 13\% con cada duplicación de $p$ hasta colapsar a $0.23$ en $p = 32$. Las tres diagonales coinciden: la eficiencia depende solo de $p$, no de la carga por proceso. El experimento complementario reproduce el patrón ($q/p = 8$: $E_f = 1.00$, $0.88$, $0.76$, $0.65$, $0.57$ y $0.27$ para $p = 1$ a $32$). Por lo tanto, la escalabilidad débil no se cumple en ningún tramo del rango medido, y no solo en $p = 32$.
+
+\textbf{Isoeficiencia (comparación entre curvas a $p$ fijo).} En el modelo ideal que considera el costo logarítmico de reducción, mantener la eficiencia requiere que el trabajo crezca como $qnC=\Theta(p\log p)$; al incluir el costo lineal de creación por proceso, el modelo explícito eleva la condición a $qnC=\Theta(p^2)$. Ambas condiciones suponen que aumentar el trabajo a $p$ fijo eleva la eficiencia. Los datos lo contradicen: para cada $p$, la eficiencia es prácticamente la misma para todos los $q$ (diferencias de $\pm 0.02$, del orden del error de medición). En $p = 16$, multiplicar el trabajo por 16 (de $q = 16$ a $q = 256$) deja la eficiencia en $\approx 0.56$, y en $p = 32$ el piso es $\approx 0.23$ para todos los $q$. Ningún crecimiento de $W$ alcanza una eficiencia mayor que la que fija $p$, de modo que en el rango medido la implementación no admite una función de isoeficiencia: el comportamiento corresponde al caso $\kappa(p) \ge 1/E^{*}$ descrito en el marco teórico. La configuración límite $q = p$ (un solo modelo por proceso) ilustra el fallo de la isoeficiencia: en el experimento complementario ($n = 2000$), $E_f = 0.59$, $0.47$ y $0.24$ para $p = 8$, $16$ y $32$, muy por debajo del $E_f \approx 1$ que predice el modelo ideal cuando el trabajo por procesador iguala al overhead. La razón del desvío se analiza a continuación.
+
+\textbf{El cuello de botella no es la reducción.} El desglose por fases muestra que el tiempo de la reducción permanece en el orden de milisegundos ($< 4$ ms incluso en $p = 32$) y la creación de procesos en $\sim$0.2 s como máximo. El componente que crece es la propia fase de mapeo: el tiempo por modelo se infla progresivamente con $p$. Para $q = 32$, $n = 10000$ (costo secuencial por modelo $\approx 0.575$ s), el tiempo efectivo por modelo en cada proceso pasa de $0.58$ s en $p = 1$ a $0.64$ s ($p=2$), $0.78$ s ($p=4$), $0.88$ s ($p=8$), $1.02$ s ($p=16$) y $2.41$ s ($p=32$): una degradación de hasta $4.2\times$. El contador de cambios de contexto involuntarios (\texttt{nivcsw}, suma sobre los $p$ procesos y máximo entre repeticiones) muestra que esta degradación no se debe a que el sistema operativo desaloje a los procesos: aunque el total crece con $p$ (hasta 338 en $p \le 16$ y hasta $\sim$1500 en $p = 32$), en gran parte porque suma más procesos, equivale a apenas $\sim$2 desalojos por proceso y por segundo en $p = 32$ ($q = 256$, unos 42 por proceso en 19~s). Para explicar los $\sim$15~s adicionales por proceso, cada desalojo tendría que costar $\sim$0.35~s, cuando su costo típico es de milisegundos. La pérdida ocurre, por tanto, mientras los procesos se están ejecutando: en las unidades de ejecución compartidas, la frecuencia de reloj o el acceso a memoria.
 
 La saturación en $p = 32$ es un efecto de contención de recursos (memoria, caché y planificador) y no una propiedad del algoritmo: la eficiencia cae al mismo nivel ($\approx 0.23$) para todos los $q$, es decir, duplicar el trabajo total no recupera la eficiencia y el exceso de procesos se convierte en contención pura. El factor $\kappa(p)$ de la siguiente subsección cuantifica exactamente este fenómeno.
 
@@ -526,38 +606,76 @@ La coincidencia del punto de quiebre en $p = 32$ en dos nodos distintos sugiere 
 \label{fig:esc_desglose_v3}
 \end{figure}
 
-\subsection{Factor de contención $\kappa(p)$ y verificación de la eficiencia}
+\subsection{Función de overhead $T_0$ y factor de contención}
 \label{subsec:kappa}
 
-La forma más compacta de resumir los resultados de escalabilidad es factorizando el tiempo paralelo como $T_p \approx \kappa(p) \cdot T_s / p$, donde $\kappa(p)$ es un \textbf{factor de contención} que mide cuánto se degrada cada unidad de trabajo paralelo respecto al paralelo ideal. Por construcción, $E_f \approx 1/\kappa(p)$ cuando los términos fijos son despreciables, de modo que la Tabla~\ref{tab:kappa} puede leerse directamente como el costo de la contención.
+Con la ecuación~\eqref{eq:overhead}, cada medición entrega un overhead $T_0 = p\,T_p - W$, con $W = T_s$ medido. El modelo sin contención predice que $T_0$ no depende de $W$; el modelo con contención~\eqref{eq:overhead_kappa} predice que crece en proporción a $W$, con pendiente $\kappa(p)-1$. Para distinguirlos se ajustó, para cada $p$, la recta por el origen $T_0=\alpha_p W$ sobre todas las configuraciones de los dos casos de cada experimento (distintos $q$ y $n$). La Tabla~\ref{tab:kappa} resume el resultado y la Figura~\ref{fig:overhead_w} muestra los puntos.
 
 \begin{table}[H]
 \centering
-\caption{Factor de contención $\kappa(p)$ (promedio sobre $q$) y overhead relativo $T_{oh}/T_p$ por experimento.}
+\small
+\caption{Función de overhead por número de procesos. $E_f = T_s/(p\,T_p)$ y $T_0/W$ son promedios sobre $q$ ($n$ fija); $\alpha_p$ y $R^2$ corresponden a la recta $T_0=\alpha_p W$ ajustada sobre todos los $q$ y $n$, con $T_0 = p\,T_p - W$ (ecuación~\eqref{eq:overhead}). Las columnas $p\,t_{spawn}$ y $p\,t_{reduce}$ son el costo agregado medido de creación de procesos y de reducción (experimento principal).}
 \label{tab:kappa}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{rccccccc|cc}
+\toprule
+& \multicolumn{7}{c|}{Principal (\texttt{n003}, $W$ de 9 a 144~s)} & \multicolumn{2}{c}{Complementario (\texttt{n005})} \\
+$p$ & $E_f$ & $T_0/W$ & $T_0$ [s] & $\alpha_p$ & $R^2$ & $p\,t_{spawn}$ [s] & $p\,t_{reduce}$ [s] & $T_0/W$ & $\alpha_p$ \\
+\midrule
+2  & 0.90 & 0.11 & 0.8 -- 14.8   & 0.10 & 0.936 & 0.01 & 0.000 & 0.09 & 0.10 \\
+4  & 0.74 & 0.36 & 3.2 -- 54.6   & 0.37 & 0.993 & 0.04 & 0.001 & 0.32 & 0.29 \\
+8  & 0.65 & 0.55 & 5.0 -- 82.1   & 0.56 & 0.998 & 0.17 & 0.004 & 0.56 & 0.48 \\
+16 & 0.56 & 0.80 & 7.7 -- 112.0  & 0.78 & 0.998 & 0.88 & 0.020 & 0.85 & 0.74 \\
+32 & 0.23 & 3.27 & 29.5 -- 468.5 & 3.28 & 1.000 & 6.73 & 0.101 & 2.89 & 3.33 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figs/v1/overhead_vs_trabajo.png}
+\caption{$T_0 = p\,T_p - W$ frente a $W = T_s$ en escala logarítmica (experimento principal, todos los $q$ y $n$). Cada color es un $p$ y la línea es la recta $T_0 = \alpha_p W$: las series son paralelas a la diagonal, es decir, $T_0 \propto W$.}
+\label{fig:overhead_w}
+\end{figure}
+
+Tres observaciones se desprenden de la tabla y la figura:
+
+\begin{enumerate}
+    \item \textbf{El overhead crece en proporción al trabajo.} Para cada $p$, $T_0$ crece un orden de magnitud cuando $W$ crece en la misma proporción (de 7.7 a 112~s en $p=16$), y los puntos de todos los $q$ y $n$ caen sobre una misma recta por el origen ($R^2 \ge 0.99$ para $p \ge 4$). En consecuencia $T_0/W$ prácticamente no cambia entre configuraciones: en el experimento principal varía menos de 0.05 entre los cinco valores de $q$ para cada $p$ (por ejemplo, de 3.24 a 3.31 en $p = 32$). Esto contradice la predicción del modelo sin contención y confirma la del modelo con contención: el overhead no es un costo fijo de gestión. La pendiente coincide con el factor de contención del ajuste, $\alpha_p \approx \kappa(p)-1$ (Tabla~\ref{tab:ajuste_kappa}), y como $E_f = 1/(1+T_0/W)$, la eficiencia queda fijada por $p$.
+    \item \textbf{La pendiente crece suavemente hasta $p = 16$ y salta en $p = 32$.} Pasa de 0.10 a 0.78 en el rango moderado y llega a $\approx 3.3$ en $p = 32$: cada entrenamiento tarda $\sim$4 veces lo que tardaría en un proceso aislado. El salto tiene una explicación concreta en el nodo \texttt{n005}: tiene 2 sockets de 16 núcleos con 2 hilos por núcleo, y la reserva de 32 CPUs de Slurm equivale a solo 16 núcleos físicos; con $p = 32$ cada núcleo ejecuta dos procesos vía \textit{hyperthreading}, que comparten las unidades de ejecución, el ancho de banda de memoria y la caché de último nivel. Otras causas compatibles son la reducción de frecuencia de reloj al activarse más núcleos y la saturación del ancho de banda de memoria compartido. Que los núcleos que comparten un dominio de contención se repartan el ancho de banda disponible y que el rendimiento por núcleo decrezca al aumentar los activos es un fenómeno documentado en la literatura de arquitecturas multinúcleo \cite{afzal2020bandwidth}; el caso extremo de \textit{hyperthreading} mencionado arriba es una variante del mismo efecto, donde dos procesos comparten las unidades de ejecución de un núcleo. Los datos no permiten separar estas causas, por lo que se plantean como hipótesis; el quiebre similar en \texttt{n003} sugiere que la partición \texttt{standard} comparte esta topología.
+    \item \textbf{El overhead está dentro del mapeo.} Los costos que el modelo sin contención considera, la creación de procesos y la reducción, explican como máximo unos segundos del overhead ($p\,t_{spawn}$ y $p\,t_{reduce}$ en la tabla), y la reducción apenas milisegundos. El resto ocurre durante el entrenamiento: cada modelo se vuelve más lento cuando hay más procesos activos. Por eso el ajuste sin contención~\eqref{eq:tpeo} obtiene coeficientes sin sentido físico: el término $c_{red}\log_2 p$ absorbe una degradación que en realidad es proporcional al trabajo. El experimento complementario reproduce el mismo patrón en otro nodo.
+\end{enumerate}
+
+\textbf{Parte fija del overhead.} La ecuación~\eqref{eq:overhead_kappa} incluye además una parte fija, de creación de procesos y sincronización, que no crece con $W$ y que se amortiza al aumentar el trabajo. Con $n \ge 5000$ es imperceptible frente a la contención, pero aparece al reducir el trabajo por modelo. La Tabla~\ref{tab:overhead_fijo} muestra los dos experimentos donde se observa.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Parte fija del overhead. Arriba: $T_0/W$ con $q = 32$ según $n$ (experimento complementario); baja al crecer $n$ hasta estabilizarse en el valor de contención. Abajo: régimen extremo ($n = 100$), recta $T_0 = \alpha_p W + \beta_p$ ajustada sobre $q$; el intercepto $\beta_p$ es la parte fija y se compara con el costo medido de creación de procesos $p\,t_{spawn}$ (promedio sobre $q$).}
+\label{tab:overhead_fijo}
 \begin{tabular}{lccccccc}
 \toprule
-& \multicolumn{3}{c}{Principal (\texttt{n003}, $n=10000$)} & \multicolumn{3}{c}{Complementario (\texttt{n005}, $n=2000$)} & \\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}
-$p$ & $\kappa(p)$ & $E_f$ & $T_{oh}/T_p$ & $\kappa(p)$ & $E_f$ & $T_{oh}/T_p$ \\
+$n$ & 500 & 1000 & 2000 & 5000 & 10000 & 20000 & 40000 \\
 \midrule
-1  & 1.00 & 1.00 & 0.00 & 1.01 & 0.99 & 0.01 \\
-2  & 1.11 & 0.90 & 0.10 & 1.09 & 0.92 & 0.08 \\
-4  & 1.36 & 0.73 & 0.27 & 1.32 & 0.76 & 0.24 \\
-8  & 1.55 & 0.65 & 0.35 & 1.56 & 0.64 & 0.36 \\
-16 & 1.80 & 0.56 & 0.44 & 1.85 & 0.54 & 0.46 \\
-32 & 4.27 & 0.23 & 0.77 & 3.89 & 0.26 & 0.74 \\
+$T_0/W$, $p = 16$ & 1.30 & 0.99 & 0.88 & 0.77 & 0.78 & 0.69 & 0.75 \\
+$T_0/W$, $p = 32$ & 4.91 & 3.92 & 3.12 & 2.99 & 3.15 & 3.34 & 3.48 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6em}
+\begin{tabular}{lccc}
+\toprule
+$n = 100$ & $p = 8$ & $p = 16$ & $p = 32$ \\
+\midrule
+$\beta_p$, parte fija [s]           & 0.46 & 1.34 & 3.85 \\
+$p\,t_{spawn}$ medido [s]           & 0.24 & 0.81 & 3.69 \\
+$\alpha_p$, pendiente               & 0.97 & 1.03 & 1.82 \\
+$T_0/W$ con $q$ mínimo $\to$ máximo & 2.87 $\to$ 0.99 & 3.92 $\to$ 1.09 & 7.07 $\to$ 2.00 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Tres observaciones se desprenden de la tabla:
-
-\begin{enumerate}
-    \item \textbf{$\kappa(p)$ es prácticamente independiente de $q$.} En el experimento principal, la dispersión de $\kappa$ entre las cinco curvas de $q$ es menor al 2\% para cada $p$ (por ejemplo, en $p = 32$ varía entre 4.24 y 4.31). Esto significa que la degradación no depende del tamaño del problema de semillas: es una propiedad del hardware que se activa al superar cierto número de procesos concurrentes. La leve dispersión en el experimento complementario (hasta $\sim$10\% en $p = 16$) se debe a que con $n = 2000$ los términos fijos pesan más y el promedio sobre $q$ incluye regímenes mixtos. En el régimen extremo ($n = 100$) el factor deja de ser constante en $q$ porque los costos fijos dominan el tiempo total y la aproximación $T_p \approx \kappa(p) T_s/p$ ya no aplica.
-    \item \textbf{$\kappa(p)$ crece suavemente hasta $p = 16$ y salta en $p = 32$.} De 1.0 a 1.8 en el rango moderado (un crecimiento compatible con la pérdida gradual por sincronización y memoria), pero se dispara a $\approx 4.0$--$4.3$ en $p = 32$: cada entrenamiento tarda $\sim$4 veces lo que tardaría en un proceso aislado. El salto tiene una explicación concreta en el nodo \texttt{n005}: tiene 2 sockets de 16 núcleos con 2 hilos por núcleo, y la reserva de 32 CPUs de Slurm equivale a solo 16 núcleos físicos; con $p = 32$ cada núcleo ejecuta dos procesos vía \textit{hyperthreading}, que comparten las unidades de ejecución, el ancho de banda de memoria y la caché de último nivel. Otras causas compatibles son la reducción de frecuencia de reloj al activarse más núcleos y la saturación del ancho de banda de memoria compartido. Que los núcleos que comparten un dominio de contención se repartan el ancho de banda disponible y que el rendimiento por núcleo decrezca al aumentar los activos es un fenómeno documentado en la literatura de arquitecturas multinúcleo \cite{afzal2020bandwidth}; el caso extremo de \textit{hyperthreading} mencionado arriba es una variante del mismo efecto, donde dos procesos comparten las unidades de ejecución de un núcleo. Los datos no permiten separar estas causas, por lo que se plantean como hipótesis; el quiebre similar en \texttt{n003} sugiere que la partición \texttt{standard} comparte esta topología.
-    \item \textbf{El overhead relativo $T_{oh}/T_p$ confirma la lectura.} Crece de $\approx 0$ en $p = 1$ a $\approx 0.77$ en $p = 32$ en el experimento principal: en el peor caso, más de tres cuartas partes del tiempo paralelo se van en lo que el paralelo ideal no contempla. La coincidencia entre $\kappa(p)$ y $1/E_f$ es exacta por definición, pero el hecho de que $\kappa$ sea \emph{constante en $q$} es el resultado empírico relevante: implica que $E_f(p) \approx 1/\kappa(p)$ es una ley experimental del sistema, no una coincidencia por configuración.
-\end{enumerate}
+En el experimento complementario, $T_0/W$ baja de 1.30 a $\approx 0.75$ en $p = 16$ entre $n = 500$ y $n = 5000$, y desde ahí se mantiene: la parte fija ya está amortizada y solo queda la contención. En el régimen extremo, la parte fija estimada es del mismo orden que el costo medido de creación de procesos (3.85~s frente a 3.69~s en $p = 32$), y $T_0/W$ baja de forma marcada al aumentar $q$, que es la señal de un costo fijo que se reparte entre más trabajo. Las pendientes de este régimen no coinciden con las del experimento principal (la pérdida aparece ya en $p = 8$), por lo que se usa solo para estimar la parte fija. Así, cada término de la ecuación~\eqref{eq:overhead_kappa} tiene respaldo experimental: la contención domina con $n$ grande y la parte fija con $n$ pequeño.
 
 \textbf{Forma paramétrica del factor de contención.} Como la degradación es aproximadamente proporcional al trabajo de mapeo, y que la degradación observada sigue un comportamiento similar al logaritmico, puede capturarse con un modelo multiplicativo alternativo:
 \begin{equation}
@@ -566,7 +684,26 @@ T_p^{teo} = a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n \cdot \left(1 +
 \end{equation}
 Ajustado sobre las configuraciones del experimento complementario con $p \le 16$ (el régimen sin el salto de contención), se obtiene $\gamma = 0.127$ con $R^2 = 0.999$ y un error relativo medio de $6.5\%$, frente a $38\%$ del modelo aditivo~\eqref{eq:tpeo} sobre los mismos puntos. La interpretación es que cada duplicación del número de procesos activos hace que cada entrenamiento sea $\sim$13\% más lento. Este modelo describe bien el régimen moderado pero, por construcción, no reproduce el salto de $\kappa$ en $p = 32$ (donde el factor crece mucho más rápido que $\log_2 p$); se reporta como evidencia de que la contención tiene una forma suave y predecible antes del quiebre, más que como reemplazo del modelo principal.
 
-\textbf{Verificación contra la eficiencia teórica.} La eficiencia que implica el modelo ajustado, $E_f^{teo} = T_s^{teo}/(p \cdot T_p^{teo})$, puede evaluarse para cada configuración y compararse con la medida. El resultado es que el modelo \textbf{no reproduce} la eficiencia medida en el régimen de contención, y el signo del error depende de la razón $q/p$: para $q = 32$, $n = 10000$, $p = 32$ predice $E_f \approx 0.12$ mientras el valor medido es $0.24$ (el modelo es pesimista porque el término $c_{red}\log_2 p$ domina sobre un mapa de un solo modelo por proceso), mientras que para $q = 256$, $p = 32$ predice $0.51$ frente a $0.23$ medido (optimista porque subestima la contención durante mapas largos). En el régimen sin contención ($p \le 8$) ambas coinciden razonablemente (errores del orden de 0.05--0.15). Esto confirma que el término $c_{red} \log_2 p$ no representa un overhead fijo por nivel sino una mezcla de efectos que no escala como $\log p$, y que el modelo PRAM describe correctamente el costo de mapeo $O(q n C / p)$ pero no contempla un factor de contención $\kappa(p)$ que domina cuando $p$ se acerca al número de recursos físicos del nodo.
+\textbf{Verificación contra la eficiencia teórica.} La eficiencia que implica el modelo ajustado, $E_f^{teo} = T_s^{teo}/(p \cdot T_p^{teo})$, puede evaluarse para cada configuración y compararse con la medida. La Tabla~\ref{tab:verif_ef} compara los dos modelos en cuatro configuraciones del experimento principal ($n = 10000$).
+
+\begin{table}[H]
+\centering
+\small
+\caption{Eficiencia medida frente a la que implica cada modelo ajustado, $E_f^{teo} = T_s/(p\,T_p^{teo})$ (experimento principal, $n = 10000$).}
+\label{tab:verif_ef}
+\begin{tabular}{cccccc}
+\toprule
+$q$ & $p$ & $E_f$ medida & sin contención~\eqref{eq:tpeo} & con contención~\eqref{eq:tpeo_cont} \\
+\midrule
+32  & 8  & 0.65 & 0.41 & 0.65 \\
+256 & 8  & 0.64 & 0.82 & 0.64 \\
+32  & 32 & 0.24 & 0.12 & 0.23 \\
+256 & 32 & 0.23 & 0.50 & 0.23 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El modelo sin contención no reproduce la eficiencia, y el signo del error depende de $q$: con $q$ pequeño es pesimista, porque su término $c_{red}\log_2 p$ pesa demasiado frente a un mapeo corto, y con $q$ grande es optimista, porque subestima la contención durante mapeos largos. El error ya es de 0.24 en $p = 8$, y su error medio sobre todas las configuraciones es 0.12. El modelo con contención reproduce las cuatro configuraciones con un error medio de 0.008 en el experimento principal (0.035 en el complementario). Esto confirma que el modelo PRAM describe correctamente el costo de mapeo $O(qnC/p)$ y que lo único que le falta es el factor $\kappa(p)$, que multiplica ese costo cuando $p$ se acerca al número de recursos físicos del nodo.
 
 \subsection{Impacto del tamaño del dataset ($q$ fijo, barrido $n \times p$)}
 
@@ -645,7 +782,7 @@ Como control de correctitud, todas las configuraciones devolvieron exactitudes c
 
 El algoritmo PRAM-CREW paralelo sobre semillas logra speedups cercanos al ideal para $p \le 8$ y mantiene una eficiencia superior a 0.5 hasta $p = 16$, demostrando que el paralelismo de tareas sobre el espacio de semillas es una estrategia efectiva para acelerar la búsqueda del mejor MLP. El modelo teórico $T_p = O\!\left(\frac{q}{p} n C + \log p\right)$ describe los tiempos con $R^2 > 0.98$ tras el ajuste de constantes, aunque sus residuos revelan una limitación: el costo de contención entre procesos no escala como $\log p$.
 
-El hallazgo central del análisis es el factor de contención $\kappa(p) \approx 1/E_f$: prácticamente independiente de $q$ y de $n$ (una vez $n \gtrsim 5000$), crece suavemente hasta $\kappa(16) \approx 1.8$ y se dispara a $\kappa(32) \approx 4.0$--$4.3$, degradando cada entrenamiento hasta $4\times$ y fijando la eficiencia en $\approx 0.23$ con speedup decreciente. Esto define dos regímenes de escalabilidad: la fuerte se mantiene hasta $p \approx 8$--$16$ y se rompe en $p = 32$; la débil se cumple en el régimen moderado (duplicar $q$ mantiene la eficiencia) pero falla en $p = 32$, donde ni más semillas ni más muestras recuperan el piso de eficiencia. En síntesis, el límite práctico del sistema no está en la reducción PRAM (despreciable, $\sim$ms) sino en la contención de recursos durante la fase de mapeo, por lo que las mejoras deben orientarse al mapeo de procesos a núcleos físicos, a la reducción de la huella de memoria compartida y, a más largo plazo, a un rediseño vectorizado sobre GPU. El experimento de régimen extremo ($n = 100$) ilustra el otro extremo del mismo fenómeno: cuando el trabajo por proceso es comparable al costo fijo de crearlo, los overheads de spawn y sincronización dominan el tiempo total y la eficiencia cae por debajo de $0.15$ en $p = 32$, confirmando que el paralelismo solo es rentable cuando $qnC$ es suficientemente mayor que los costos de gestión.
+El hallazgo central del análisis es que la función de overhead crece en proporción al trabajo, $T_0 \approx (\kappa(p)-1)\,W$, y no como el costo fijo de gestión que predice el modelo PRAM: para cada $p$, los puntos $(W, T_0)$ de todos los $q$ y $n$ caen sobre una misma recta ($R^2 \ge 0.99$ para $p \ge 4$), con una pendiente $\kappa(p)-1$ que crece suavemente hasta $\approx 0.8$ en $p = 16$ y salta a $\approx 3.3$ en $p = 32$. Es decir, cada entrenamiento se vuelve más lento cuando hay más procesos activos, hasta $4\times$ en $p = 32$, lo que fija la eficiencia en $\approx 1/\kappa(p)$ con independencia del tamaño del problema. De ahí se siguen las conclusiones de escalabilidad: la fuerte se mantiene de forma aceptable hasta $p \approx 8$--$16$ y se rompe en $p = 32$, donde el speedup decrece; la débil no se cumple en ningún tramo, porque con $q/p$ constante la eficiencia cae de $0.90$ en $p = 2$ a $0.56$ en $p = 16$ y $0.23$ en $p = 32$; y no existe una función de isoeficiencia en el rango medido, porque ni más semillas ni más muestras elevan la eficiencia que fija $p$. En síntesis, el límite práctico del sistema no está en la reducción PRAM (despreciable, $\sim$ms) sino en la contención de recursos durante la fase de mapeo, por lo que las mejoras deben orientarse al mapeo de procesos a núcleos físicos, a la reducción de la huella de memoria compartida y, a más largo plazo, a un rediseño vectorizado sobre GPU. El experimento de régimen extremo ($n = 100$) ilustra el otro extremo del mismo fenómeno: cuando el trabajo por proceso es comparable al costo fijo de crearlo, los overheads de spawn y sincronización dominan el tiempo total y la eficiencia cae hasta $0.12$ en $p = 32$ con $q = 32$, mientras que con $q = 1024$ el costo fijo se amortiza y alcanza $0.33$, confirmando que el paralelismo solo es rentable cuando $qnC$ es suficientemente mayor que los costos de gestión.
 
 % --- 4. BIBLIOGRAFÍA ---
 \section{Bibliografía}

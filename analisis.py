@@ -31,6 +31,29 @@ def teoria(coef, n, q, p):
     return a * math.ceil(q / p) * n + cs * p + cr * math.log2(p) + c0
 
 
+def ajustar_kappa(df):
+    """T_p = kappa(p)*a*ceil(q/p)*n + b_p: una recta por p; kappa(p) = pendiente(p)/pendiente(1)."""
+    rectas = {}
+    for p, g in df.groupby("p"):
+        X = np.column_stack([np.ceil(g.q / g.p) * g.n, np.ones(len(g))])
+        rectas[int(p)], *_ = np.linalg.lstsq(X, g.t_total.to_numpy(), rcond=None)
+    return rectas
+
+
+def teoria_kappa(rectas, n, q, p):
+    s, b = rectas[int(p)]
+    return s * math.ceil(q / p) * n + b
+
+
+def errores(df, col):
+    y = df.t_total.to_numpy()
+    pred = df[col].to_numpy()
+    rel = np.abs(y - pred) / y
+    e_pred = df.Ts.to_numpy() / (df.p.to_numpy() * pred)
+    return (1 - np.sum((y - pred) ** 2) / np.sum((y - y.mean()) ** 2),
+            rel.mean(), rel.max(), np.abs(df.E.to_numpy() - e_pred).mean())
+
+
 def metricas(med, exp):
     de = med[med.experimento == exp]
     if not len(de):
@@ -40,7 +63,8 @@ def metricas(med, exp):
     par["Ts"] = [seq[(n, q)] for n, q in zip(par.n, par.q)]
     par["S"] = par.Ts / par.t_total
     par["E"] = par.S / par.p
-    par["T_oh"] = par.t_total - par.Ts / par.p
+    par["T0"] = par.p * par.t_total - par.Ts
+    par["T0_W"] = par.T0 / par.Ts
     par["flops_s"] = par.q * par.flops_modelo / par.t_total
     return par.sort_values(["n", "q", "p"])
 
@@ -51,17 +75,17 @@ def _guardar(fig, out, nombre):
     plt.close(fig)
 
 
-def _linea_teorica(ax, df, coef, **kw):
-    """Curva teórica evaluada en los (n,q,p) medidos de df (una por grupo)."""
+def _linea_teorica(ax, df, rectas, **kw):
+    """Curva teórica (modelo con kappa) evaluada en los (n,q,p) medidos de df."""
     if not any(t.get_label() == "$T_p$ teórico" for t in ax.lines):
         kw.setdefault("label", "$T_p$ teórico")
     for _, g in df.groupby("q"):
         g = g.sort_values("p")
-        ys = [teoria(coef, n, q, p) for n, q, p in zip(g.n, g.q, g.p)]
+        ys = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(g.n, g.q, g.p)]
         ax.plot(g.p, ys, "--", alpha=0.7, **kw)
 
 
-def graficas_escalabilidad(E, coef, out):
+def graficas_escalabilidad(E, rectas, out):
     """Caso 1: n fija, barrido q x p. Una figura por metrica, curva por q."""
     n_ref = E.n.max()
     E = E[E.n == n_ref].copy()
@@ -71,7 +95,7 @@ def graficas_escalabilidad(E, coef, out):
     for q in qs:
         g = E[E.q == q].sort_values("p")
         l, = ax.plot(g.p, g.t_total, "o-", label=f"$q={q}$")
-        _linea_teorica(ax, g, coef, color=l.get_color())
+        _linea_teorica(ax, g, rectas, color=l.get_color())
     ax.set_xscale("log", base=2); ax.set_yscale("log")
     ax.set_xlabel("$p$ — procesos"); ax.set_ylabel("$T_p$ [s]")
     ax.set_title(f"$T_p$ vs $p$ ($n={n_ref}$)")
@@ -110,15 +134,6 @@ def graficas_escalabilidad(E, coef, out):
     ax.legend(fontsize=8); ax.grid(alpha=0.3)
     _guardar(fig, out, "escalabilidad_gflops.png")
 
-    fig, ax = plt.subplots(figsize=(7, 4.5))
-    for q in qs:
-        g = E[E.q == q].sort_values("p")
-        ax.plot(g.p, g.T_oh, "o-", label=f"$q={q}$")
-    ax.set_xscale("log", base=2); ax.axhline(0, color="gray", lw=0.8)
-    ax.set_xlabel("$p$ — procesos"); ax.set_ylabel("$T_{oh} = T_p - T_s/p$ [s]")
-    ax.set_title(f"$T_{{oh}}$ vs $p$ ($n={n_ref}$)")
-    ax.legend(fontsize=8); ax.grid(alpha=0.3)
-    _guardar(fig, out, "escalabilidad_overhead.png")
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     for q in qs:
@@ -145,6 +160,25 @@ def graficas_escalabilidad(E, coef, out):
         ax.set_title(f"Desglose de $T_p$ ($q={q}$, $n={n_ref}$)")
         ax.legend(); ax.grid(alpha=0.3, axis="y")
         _guardar(fig, out, f"escalabilidad_desglose_q{q}.png")
+
+
+def grafica_overhead(df, out):
+    """T0 = p*Tp - W frente a W (log-log), una serie por p, con la recta T0 = alpha_p*W."""
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    for p in sorted(df.p.unique()):
+        if p == 1:
+            continue
+        g = df[df.p == p].sort_values("Ts")
+        g = g[g.T0 > 0]
+        alpha = float((g.Ts * g.T0).sum() / (g.Ts ** 2).sum())
+        l, = ax.plot(g.Ts, g.T0, "o", ms=4, label=f"$p={p}$ ($\\alpha={alpha:.2f}$)")
+        ws = np.array([g.Ts.min(), g.Ts.max()])
+        ax.plot(ws, alpha * ws, "-", color=l.get_color(), alpha=0.6)
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set_xlabel("$W = T_s$ [s]"); ax.set_ylabel("$T_0 = pT_p - W$ [s]")
+    ax.set_title("Función de overhead frente al trabajo")
+    ax.legend(fontsize=8); ax.grid(alpha=0.3, which="both")
+    _guardar(fig, out, "overhead_vs_trabajo.png")
 
 
 def graficas_impacto_n(A, out):
@@ -213,32 +247,47 @@ def main():
         return
     todos = pd.concat(partes)
     coef = ajustar(todos)
+    rectas = ajustar_kappa(todos)
+    a1 = rectas[1][0] if 1 in rectas else float("nan")
     lineas = ["T_p = a*ceil(q/p)*n + c_spawn*p + c_red*log2(p) + c_seq  (ajuste conjunto de los casos presentes)",
               f"a      = {coef[0]:.6e} s/(modelo*muestra)",
               f"c_spawn= {coef[1]:.6e} s/proceso",
               f"c_red  = {coef[2]:.6e} s/nivel",
               f"c_seq  = {coef[3]:.6e} s",
               f"R^2 global = {r2(todos, coef):.5f}"]
+    todos = todos.copy()
+    todos["T_add"] = [teoria(coef, n, q, p) for n, q, p in zip(todos.n, todos.q, todos.p)]
+    todos["T_kap"] = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(todos.n, todos.q, todos.p)]
+    lineas.append("")
+    lineas.append("T_p = kappa(p)*a*ceil(q/p)*n + b_p  (una recta por p; a = pendiente con p=1)")
+    lineas.append(f"a      = {a1:.6e} s/(modelo*muestra)")
+    for p in sorted(rectas):
+        s_p, b_p = rectas[p]
+        lineas.append(f"p={p:3d}  kappa={s_p / a1:.3f}  b_p={b_p:+.4f} s")
+    for nombre, col in (("aditivo", "T_add"), ("kappa", "T_kap")):
+        R2, rm, rx, ee = errores(todos, col)
+        lineas.append(f"{nombre:8s} R^2={R2:.5f}  err_rel_medio={rm * 100:.1f}%  err_rel_max={rx * 100:.0f}%  err_medio_E={ee:.3f}")
+    grafica_overhead(todos, args.out)
 
     if E is not None:
         rE = r2(E, coef)
         lineas.append("R^2 escalabilidad = " + f"{rE:.5f}")
         E = E.copy()
-        E["T_teo"] = [teoria(coef, n, q, p) for n, q, p in zip(E.n, E.q, E.p)]
+        E["T_teo"] = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(E.n, E.q, E.p)]
         E.to_csv(os.path.join(args.out, "resumen_escalabilidad.csv"), index=False)
-        graficas_escalabilidad(E, coef, args.out)
+        graficas_escalabilidad(E, rectas, args.out)
     if A is not None:
         rA = r2(A, coef)
         lineas.append("R^2 impacto de n = " + f"{rA:.5f}")
         A = A.copy()
-        A["T_teo"] = [teoria(coef, n, q, p) for n, q, p in zip(A.n, A.q, A.p)]
+        A["T_teo"] = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(A.n, A.q, A.p)]
         A.to_csv(os.path.join(args.out, "resumen_impacto_n.csv"), index=False)
         graficas_impacto_n(A, args.out)
     texto = "\n".join(lineas) + "\n"
     with open(os.path.join(args.out, "ajuste.txt"), "w") as f:
         f.write(texto)
     print(texto)
-    cols = ["n", "q", "p", "t_total", "T_teo", "S", "E", "T_oh", "t_other", "acc", "nivcsw"]
+    cols = ["n", "q", "p", "t_total", "T_teo", "S", "E", "T0", "T0_W", "t_other", "acc", "nivcsw"]
     if E is not None:
         print("\nEscalabilidad (n fija, barrido q x p):")
         print(E[cols].to_string(index=False))
