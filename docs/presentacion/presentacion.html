@@ -586,6 +586,45 @@ python3 bench.py --ns 2000 \
   </div>
 </section>
 
+<!-- R5 EFICIENCIA N2000 -->
+<section class="slide light" data-sec="3 · Resultados" data-notes="Verificamos con el experimento complementario, n igual a 2000 en otro nodo. El patrón se repite: eficiencia cerca de 0.9 en p igual a 2 y entre 0.24 y 0.27 en p igual a 32. La diferencia es que ahora las curvas de q se separan: cada entrenamiento es cinco veces más corto y los costos fijos pesan más. Y aunque el nodo es 15 por ciento más lento, la eficiencia en cada p coincide con la del experimento principal: es una propiedad del hardware.">
+  <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · verificación con el experimento complementario · v2, n = 2000 · figura del informe</p><h2 class="a" style="--d:100ms">Con n = 2000 se repite el patrón</h2></div>
+  <div class="row" style="gap:40px;align-items:flex-start">
+    <div class="chart" id="ch-ef2"></div>
+    <div class="col" style="width:470px;gap:24px;padding-top:56px"><p class="body a" style="--d:1800ms">E ≈ 0.9 → 0.73–0.78 → 0.59–0.67 → 0.47–0.58 → <span class="am">0.24–0.27</span> para p = 2 … 32.</p>
+      <p class="small a" style="--d:2000ms"><b>Las curvas de q se separan:</b> en p = 16, q = 16 cae a 0.47 y q = 256 queda en 0.58. Cada entrenamiento es 5× más corto y los costos fijos dejan de diluirse.</p>
+      <p class="small a" style="--d:2200ms"><b>E coincide entre nodos:</b> n005 es ~15 % más lento, pero la eficiencia en cada p es la misma que en n003.</p>
+      <p class="hint a f" style="--d:2600ms">Cursor sobre un punto: su valor · clic en la leyenda: aislar una curva</p>
+    </div>
+  </div>
+</section>
+
+<!-- R6 EFICIENCIA N100 -->
+<section class="slide light" data-sec="3 · Resultados" data-notes="Para ver el overhead de forma extrema bajamos n a 100 en el mismo nodo del experimento principal y ampliamos q hasta 1024. Ahora el costo fijo por proceso es comparable al entrenamiento: las curvas se separan claramente por q. Con q igual a 8, el tiempo mínimo está en p igual a 4 y agregar procesos empeora; con q igual a 1024 todavía hay trabajo suficiente para que más procesos rindan.">
+  <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · régimen extremo · v3, n = 100 · figura del informe</p><h2 class="a" style="--d:100ms">Con n = 100 el overhead separa las curvas</h2></div>
+  <div class="row" style="gap:40px;align-items:flex-start">
+    <div class="chart" id="ch-ef3"></div>
+    <div class="col" style="width:470px;gap:24px;padding-top:56px"><p class="body a" style="--d:1800ms">El costo fijo por proceso es comparable al entrenamiento mismo.</p>
+      <p class="small a" style="--d:2000ms"><b>q = 8:</b> Tp toca su mínimo en p = 4; agregar procesos es contraproducente.</p>
+      <p class="small a" style="--d:2200ms"><b>q = 1024:</b> todavía hay trabajo suficiente para que aumentar p siga rindiendo.</p>
+      <p class="hint a f" style="--d:2600ms">Cursor sobre un punto: su valor · clic en la leyenda: aislar una curva</p>
+    </div>
+  </div>
+</section>
+
+<!-- R7 DESGLOSE N100 -->
+<section class="slide light" data-sec="3 · Resultados" data-notes="Este es el desglose de q igual a 32 con n igual a 100. En p igual a 32, solo crear los procesos cuesta 0.10 segundos de un tiempo paralelo de 0.16: cerca del 60 por ciento. La eficiencia colapsa a 0.12. Aquí sí domina el overhead de gestión: el spawn y la sincronización frente a un mapeo de milisegundos.">
+  <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · régimen extremo · v3, n = 100, q = 32 · figura del informe</p><h2 class="a" style="--d:100ms">Aquí el spawn sí domina</h2></div>
+  <div class="row" style="gap:40px;align-items:flex-start">
+    <div class="chart" id="ch-dg"></div>
+    <div class="col" style="width:470px;gap:24px;padding-top:56px"><div class="a" style="--d:1800ms"><p class="num ad">≈ 60 %</p><p class="small">de Tp en p = 32 es crear procesos: 0.10 s de 0.16 s.</p></div>
+      <div class="a" style="--d:2000ms"><p class="num t">E ≈ 0.12</p><p class="small">en p = 32: la eficiencia colapsa.</p></div>
+      <p class="small a" style="--d:2200ms">"otro" es negativo (punteado): descuenta tiempo solapado, y el Tp medido va sobre cada barra.</p>
+      <p class="hint a f" style="--d:2600ms">Cursor sobre un segmento: su valor</p>
+    </div>
+  </div>
+</section>
+
 <!-- 6 PREDICCION -->
 <section class="slide light" data-sec="3 · Overhead y κ(p)" data-notes="Esta es la predicción que vamos a poner a prueba. T cero es el tiempo que los p procesos gastan en conjunto por encima del secuencial. Si reemplazamos nuestro modelo, el Map no deja nada: p veces q sobre p por nC es exactamente el trabajo secuencial. Solo queda la reducción, c_red por p log p, que no depende del trabajo. Entonces, con más semillas o más muestras, T0 sobre W debería bajar y la eficiencia acercarse a 1.">
   <div class="head" style="margin-bottom:28px"><p class="eyebrow a">Replanteamiento del overhead · la predicción</p><h2 class="a" style="--d:100ms">El overhead debería ser un costo fijo</h2></div>
@@ -754,8 +793,8 @@ addEventListener('resize',fit);fit();
 (function(){const c=document.getElementById('cores');let h='';for(let i=0;i<16;i++){h+=`<div class="core a s" style="--d:${300+i*45}ms"><div class="dot pulse" style="background:var(--ocre);--d:${i*90}ms"></div><div class="dot pulse" style="background:var(--grana);--d:${800+i*90}ms"></div></div>`;}c.innerHTML=h;})();
 
 /* gráficas */
-const D={"esc":{"16":{"p":[1,2,4,8,16],"tp":[9.283,5.237,3.119,1.774,1.056],"teo":[9.537,5.216,3.105,1.786,1.093],"S":[0.996,1.764,2.962,5.209,8.751],"E":[0.996,0.882,0.741,0.651,0.547],"gf":[11.1,19.6,32.9,57.8,97.2]},"32":{"p":[1,2,4,8,16,32],"tp":[18.433,10.24,6.279,3.526,2.053,2.434],"teo":[18.461,10.148,6.202,3.549,2.088,2.468],"S":[0.997,1.795,2.927,5.212,8.95,7.551],"E":[0.997,0.897,0.732,0.652,0.559,0.236],"gf":[11.1,20.0,32.7,58.2,99.9,84.3]},"64":{"p":[1,2,4,8,16,32],"tp":[36.424,20.061,11.888,6.951,4.054,4.832],"teo":[36.309,20.013,12.396,7.075,4.079,4.873],"S":[0.985,1.788,3.017,5.161,8.847,7.424],"E":[0.985,0.894,0.754,0.645,0.553,0.232],"gf":[11.3,20.5,34.5,59.0,101.2,84.9]},"128":{"p":[1,2,4,8,16,32],"tp":[72.724,39.909,25.005,14.08,8.089,9.714],"teo":[72.004,39.741,24.784,14.126,8.06,9.684],"S":[0.997,1.817,2.9,5.15,8.965,7.466],"E":[0.997,0.909,0.725,0.644,0.56,0.233],"gf":[11.3,20.6,32.8,58.3,101.5,84.5]},"256":{"p":[1,2,4,8,16,32],"tp":[143.093,79.209,49.544,28.209,15.974,19.128],"teo":[143.395,79.198,49.559,28.228,16.022,19.305],"S":[1.003,1.813,2.898,5.089,8.988,7.506],"E":[1.003,0.906,0.724,0.636,0.562,0.235],"gf":[11.5,20.7,33.1,58.2,102.8,85.8]}},"ov":{"2":{"a":0.097,"pts":[[9.24,1.23],[18.38,2.1],[35.87,4.25],[72.52,7.3],[143.57,14.85],[9.27,0.81],[18.38,2.1],[36.23,3.73],[74.54,4.49]]},"4":{"a":0.369,"pts":[[9.24,3.24],[18.38,6.74],[35.87,11.68],[72.52,27.5],[143.57,54.6],[9.27,3.57],[18.38,6.74],[36.23,13.5],[74.54,24.56]]},"8":{"a":0.561,"pts":[[9.24,4.95],[18.38,9.83],[35.87,19.73],[72.52,40.12],[143.57,82.1],[9.27,5.36],[18.38,9.83],[36.23,21.19],[74.54,39.28]]},"16":{"a":0.779,"pts":[[9.24,7.65],[18.38,14.48],[35.87,29.0],[72.52,56.91],[143.57,112.01],[9.27,8.43],[18.38,14.48],[36.23,30.17],[74.54,55.44]]},"32":{"a":3.278,"pts":[[18.38,59.5],[35.87,118.74],[72.52,238.33],[143.57,468.51],[9.27,29.53],[18.38,59.5],[36.23,115.93],[74.54,249.04]]}}};
-const QC={16:'#2F3E73',32:'#C08A2E',64:'#4F7A3A',128:'#A3282B',256:'#6A3D6E'};
+const D={"esc":{"16":{"p":[1,2,4,8,16],"tp":[9.283,5.237,3.119,1.774,1.056],"teo":[9.537,5.216,3.105,1.786,1.093],"S":[0.996,1.764,2.962,5.209,8.751],"E":[0.996,0.882,0.741,0.651,0.547],"gf":[11.1,19.6,32.9,57.8,97.2]},"32":{"p":[1,2,4,8,16,32],"tp":[18.433,10.24,6.279,3.526,2.053,2.434],"teo":[18.461,10.148,6.202,3.549,2.088,2.468],"S":[0.997,1.795,2.927,5.212,8.95,7.551],"E":[0.997,0.897,0.732,0.652,0.559,0.236],"gf":[11.1,20.0,32.7,58.2,99.9,84.3]},"64":{"p":[1,2,4,8,16,32],"tp":[36.424,20.061,11.888,6.951,4.054,4.832],"teo":[36.309,20.013,12.396,7.075,4.079,4.873],"S":[0.985,1.788,3.017,5.161,8.847,7.424],"E":[0.985,0.894,0.754,0.645,0.553,0.232],"gf":[11.3,20.5,34.5,59.0,101.2,84.9]},"128":{"p":[1,2,4,8,16,32],"tp":[72.724,39.909,25.005,14.08,8.089,9.714],"teo":[72.004,39.741,24.784,14.126,8.06,9.684],"S":[0.997,1.817,2.9,5.15,8.965,7.466],"E":[0.997,0.909,0.725,0.644,0.56,0.233],"gf":[11.3,20.6,32.8,58.3,101.5,84.5]},"256":{"p":[1,2,4,8,16,32],"tp":[143.093,79.209,49.544,28.209,15.974,19.128],"teo":[143.395,79.198,49.559,28.228,16.022,19.305],"S":[1.003,1.813,2.898,5.089,8.988,7.506],"E":[1.003,0.906,0.724,0.636,0.562,0.235],"gf":[11.5,20.7,33.1,58.2,102.8,85.8]}},"ov":{"2":{"a":0.097,"pts":[[9.24,1.23],[18.38,2.1],[35.87,4.25],[72.52,7.3],[143.57,14.85],[9.27,0.81],[18.38,2.1],[36.23,3.73],[74.54,4.49]]},"4":{"a":0.369,"pts":[[9.24,3.24],[18.38,6.74],[35.87,11.68],[72.52,27.5],[143.57,54.6],[9.27,3.57],[18.38,6.74],[36.23,13.5],[74.54,24.56]]},"8":{"a":0.561,"pts":[[9.24,4.95],[18.38,9.83],[35.87,19.73],[72.52,40.12],[143.57,82.1],[9.27,5.36],[18.38,9.83],[36.23,21.19],[74.54,39.28]]},"16":{"a":0.779,"pts":[[9.24,7.65],[18.38,14.48],[35.87,29.0],[72.52,56.91],[143.57,112.01],[9.27,8.43],[18.38,14.48],[36.23,30.17],[74.54,55.44]]},"32":{"a":3.278,"pts":[[18.38,59.5],[35.87,118.74],[72.52,238.33],[143.57,468.51],[9.27,29.53],[18.38,59.5],[36.23,115.93],[74.54,249.04]]}},"ef2":{"8":{"p":[1,2,4,8],"E":[0.9967,0.9211,0.7327,0.5933]},"16":{"p":[1,2,4,8,16],"E":[0.9761,0.885,0.7394,0.6206,0.4747]},"32":{"p":[1,2,4,8,16,32],"E":[0.9894,0.9049,0.7596,0.6471,0.5323,0.2425]},"64":{"p":[1,2,4,8,16,32],"E":[0.9936,0.9232,0.7743,0.6496,0.5583,0.2557]},"128":{"p":[1,2,4,8,16,32],"E":[0.9914,0.9423,0.7763,0.6661,0.5688,0.2631]},"256":{"p":[1,2,4,8,16,32],"E":[1.0024,0.9217,0.778,0.6664,0.5828,0.2685]}},"ef3":{"8":{"p":[1,2,4,8],"E":[0.9463,0.7665,0.6118,0.2582]},"16":{"p":[1,2,4,8,16],"E":[0.9644,0.8077,0.6906,0.3396,0.2034]},"32":{"p":[1,2,4,8,16,32],"E":[0.9885,0.8691,0.772,0.3766,0.2945,0.1239]},"64":{"p":[1,2,4,8,16,32],"E":[0.9918,0.9773,0.8034,0.434,0.3064,0.1786]},"256":{"p":[1,2,4,8,16,32],"E":[0.9971,0.9899,0.8399,0.4643,0.4038,0.2627]},"1024":{"p":[1,2,4,8,16,32],"E":[0.9988,0.9746,0.8516,0.5032,0.4793,0.333]}},"dg":{"p":[1,2,4,8,16,32],"t_spawn":[0.00286,0.00833,0.01316,0.03059,0.04769,0.09624],"t_map":[0.63696,0.35513,0.19381,0.19529,0.1171,0.13611],"t_reduce":[0.0,9e-05,0.00023,0.00071,0.00192,0.00889],"t_other":[0.00309,0.00206,-0.0014,-0.01567,-0.03186,-0.08089],"t_total":[0.6429,0.36561,0.20581,0.21092,0.13486,0.16035]}};
+const QC={8:'#8C7B6B',1024:'#2E7D7A',16:'#2F3E73',32:'#C08A2E',64:'#4F7A3A',128:'#A3282B',256:'#6A3D6E'};
 const PC={2:'#2F3E73',4:'#C08A2E',8:'#4F7A3A',16:'#A3282B',32:'#6A3D6E'};
 function chart(id,o){
   const box=document.getElementById(id),W=1150,H=o.h||600,M={l:96,r:20,t:14,b:84},pw=W-M.l-M.r,ph=H-M.t-M.b;
@@ -803,6 +842,29 @@ chart('ch-ef',{x:PX,y:{min:0,max:1.15,ticks:[0,0.2,0.4,0.6,0.8,1.0],fmt:t=>t.toF
   series:ser((d,j)=>d.E[j]),tip:(s,x,y)=>`q=${s.key} · p=${x} · E=${y.toFixed(3)}`});
 chart('ch-gf',{x:PX,y:{min:0,max:115,ticks:[0,20,40,60,80,100],label:'throughput [GFLOP/s]'},
   series:ser((d,j)=>d.gf[j]),tip:(s,x,y)=>`q=${s.key} · p=${x} · ${y.toFixed(1)} GFLOP/s`});
+const serE=o=>Object.keys(o).map(Number).map(q=>({key:q,c:QC[q],leg:`q = ${q}`,pts:o[q].p.map((p,j)=>[p,o[q].E[j]])}));
+const EY={min:0,max:1.15,ticks:[0,0.2,0.4,0.6,0.8,1.0],fmt:t=>t.toFixed(1),label:'E = S / p'};
+chart('ch-ef2',{x:PX,y:EY,series:serE(D.ef2),tip:(s,x,y)=>`q=${s.key} · p=${x} · E=${y.toFixed(3)}`});
+chart('ch-ef3',{x:PX,y:EY,series:serE(D.ef3),tip:(s,x,y)=>`q=${s.key} · p=${x} · E=${y.toFixed(3)}`});
+(function(){
+  const box=document.getElementById('ch-dg'),d=D.dg,W=1150,H=600,M={l:96,r:20,t:14,b:84},pw=W-M.l-M.r,ph=H-M.t-M.b,ymax=0.7;
+  const Y=v=>ph-v/ymax*ph,bw=pw/d.p.length*0.6,parts=[['spawn','t_spawn','#A3282B'],['map','t_map','#2F3E73'],['reduce','t_reduce','#C08A2E'],['otro','t_other','#4F7A3A']];
+  let g=`<g transform="translate(${M.l},${M.t})">`;
+  [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7].forEach(t=>{const y=Y(t).toFixed(1);g+=`<line class="gl" x1="0" x2="${pw}" y1="${y}" y2="${y}"/><text x="-14" y="${+y+7}" text-anchor="end">${t.toFixed(1)}</text>`;});
+  d.p.forEach((p,j)=>{const cx=(j+0.5)*pw/d.p.length;let b=0,top=0;
+    g+=`<text x="${cx}" y="${ph+34}" text-anchor="middle">${p}</text>`;
+    parts.forEach(([nm,k,c],i)=>{const v=d[k][j],y0=Y(b),y1=Y(b+v);b+=v;top=Math.max(top,b);
+      g+=`<rect class="a k pt" style="--d:${500+j*160+i*60}ms;transform-origin:${cx}px ${ph}px" x="${(cx-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(Math.abs(y1-y0),0.5).toFixed(1)}" fill="${c}" ${v<0?'fill-opacity=".55" stroke="#4F7A3A" stroke-dasharray="6 4" stroke-width="2"':''} data-t="p=${p} · ${nm} = ${(v*1000).toFixed(1)} ms"/>`;});
+    g+=`<text class="a f" style="--d:${900+j*160}ms;fill:var(--text-l)" x="${cx}" y="${Y(top)-12}" text-anchor="middle">Tp ${d.t_total[j].toFixed(2)}</text>`;});
+  g+=`<line class="ax0" x1="0" x2="${pw}" y1="${ph}" y2="${ph}"/><line class="ax0" x1="0" x2="0" y1="0" y2="${ph}"/>`;
+  g+=`<text class="lab" x="${pw/2}" y="${ph+74}" text-anchor="middle">p — procesos</text><text class="lab" transform="translate(-70,${ph/2}) rotate(-90)" text-anchor="middle">tiempo [s]</text>`;
+  g+=`<g class="tip" visibility="hidden"><rect rx="3" height="40"/><text x="14" y="27"></text></g></g>`;
+  box.innerHTML=`<div class="lg a f" style="--d:300ms">${parts.map(([nm,,c])=>`<span><i style="background:${c}"></i>${nm}</span>`).join('')}</div><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${g}</svg>`;
+  const tip=box.querySelector('.tip'),tt=tip.querySelector('text'),tr=tip.querySelector('rect');
+  box.querySelectorAll('.pt').forEach(r=>{r.addEventListener('mouseenter',()=>{tt.textContent=r.dataset.t;const w=tt.getComputedTextLength()+28,cx=+r.getAttribute('x')+bw/2,cy=+r.getAttribute('y');
+    tr.setAttribute('width',w);tip.setAttribute('transform',`translate(${Math.min(Math.max(cx-w/2,0),pw-w)},${Math.max(cy-56,0)})`);tip.setAttribute('visibility','visible');});
+    r.addEventListener('mouseleave',()=>tip.setAttribute('visibility','hidden'));});
+})();
 chart('ch-ov',{x:{log:10,min:8,max:170,ticks:[10,20,50,100],label:'W = Ts [s] (escala log)'},
   y:{log:10,min:0.6,max:700,ticks:[1,2,5,10,20,50,100,200,500],label:'T0 = p·Tp − W [s] (escala log)'},
   series:Object.keys(D.ov).flatMap(p=>{const o=D.ov[p],ws=o.pts.map(v=>v[0]),w0=Math.min(...ws),w1=Math.max(...ws);
