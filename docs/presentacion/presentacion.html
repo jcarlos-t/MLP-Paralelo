@@ -197,6 +197,7 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
 .lg i.dash{height:0;border-top:4px dashed}
 .hint{font:italic 400 21px var(--serif);color:var(--mute-l)}
 
+.fq{font-size:22px;display:flex;align-items:center;gap:10px;white-space:nowrap} .fr{display:inline-flex;flex-direction:column;align-items:center} .fr>span:first-child{border-bottom:2px solid currentColor;padding:0 6px 3px;align-self:stretch;text-align:center} .fr>span:last-child{padding-top:3px}
 /* impresión / PDF: una diapositiva por página, animaciones en su estado final */
 @media print{
   @page{size:1920px 1080px;margin:0}
@@ -314,8 +315,8 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
     <div class="card a s" style="--d:200ms"><p class="card-t">Trabajo</p><p class="card-f">W = O(q·n·C)</p><p class="small">q entrenamientos de costo n·C, con C = E·d·h·t_c.</p></div>
     <div class="card a s" style="--d:300ms"><p class="card-t">Span</p><p class="card-f">T∞ = O(n·C + log q)</p><p class="small">Un entrenamiento más los log₂q niveles del árbol.</p></div>
     <div class="card a s" style="--d:400ms"><p class="card-t">Tiempo paralelo</p><p class="card-f" style="font-size:27px">Tp = (q/p)·nC + c_red·log₂p</p><p class="small">Map de q/p modelos por proceso y árbol de log₂p niveles. En el PRAM ideal: O(qnC/p + log p).</p></div>
-    <div class="card a s" style="--d:500ms"><p class="card-t">Speedup</p><p class="card-f">S = Ts / Tp</p><p class="small">con Ts = q·n·C</p></div>
-    <div class="card a s" style="--d:600ms"><p class="card-t">Eficiencia</p><p class="card-f">E = S / p</p><p class="small">speedup promedio por proceso</p></div>
+    <div class="card a s" style="--d:500ms"><p class="card-t">Speedup</p><p class="card-f fq">S = <span class="fr"><span>p</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">Ts / Tp con Ts = q·n·C</p></div>
+    <div class="card a s" style="--d:600ms"><p class="card-t">Eficiencia</p><p class="card-f fq">E = <span class="fr"><span>1</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">S / p: tiende a 1 si qnC ≫ p·log₂p</p></div>
     <div class="card a s" style="--d:700ms;--kc:var(--grana);border-top-color:var(--grana)">
       <p class="card-t">Isoeficiencia · cota del modelo</p>
       <div class="iso"><span>la reducción aporta</span><b>c_red·p·log₂p / (qnC)</b>
