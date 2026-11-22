@@ -282,14 +282,14 @@ T_\infty = O(nC+\log q).
 
 \subsubsection{Tiempo paralelo}
 
-En la implementación con $p$ procesadores, cada uno procesa secuencialmente $q/p$ semillas, suponiendo que $q$ es múltiplo de $p$. Cada procesador conserva su mejor resultado local y la reducción compara los $p$ candidatos resultantes. Para representar el tiempo intra-nodo sin descartar los costos de orden menor, se usa el modelo
+En la implementación con $p$ procesadores, cada uno procesa secuencialmente $q/p$ semillas, suponiendo que $q$ es múltiplo de $p$. Cada procesador conserva su mejor resultado local y la reducción compara los $p$ candidatos resultantes. El modelo de tiempo explícito es
 \begin{equation}
-T_p=c_{seq}+c_{spawn}\,p+\frac{q}{p}\,nC+c_{red}\log_2 p.
+T_p=\frac{q}{p}\,nC+c_{red}\log_2 p.
 \label{eq:tp_explicito}
 \end{equation}
-Aquí, $c_{seq}$ representa el costo fijo no paralelizable de preparación y finalización, como la asignación de buffers, la inicialización de barreras y la consolidación del modelo ganador. El término $c_{spawn}\,p$ aproxima el costo de crear, lanzar y cerrar los $p$ procesos, donde $c_{spawn}$ es el costo por proceso. El término $(q/p)nC$ representa el trabajo de entrenamiento asignado a cada procesador. Finalmente, $c_{red}\log_2 p$ modela la reducción sobre los $p$ resultados locales, con $c_{red}$ como costo efectivo por nivel, incluida la sincronización.
+El término $(q/p)nC$ representa el trabajo de entrenamiento asignado a cada procesador. El término $c_{red}\log_2 p$ modela la reducción sobre los $p$ resultados locales, con $c_{red}$ como costo efectivo por nivel, incluida la sincronización. Los costos fijos de preparación y gestión de procesos no forman parte del modelo PRAM y se absorben en una constante aditiva al ajustar el modelo a las mediciones.
 
-La expresión anterior es el modelo de tiempo utilizado para el análisis; sus coeficientes efectivos pueden estimarse a partir de las mediciones. En el modelo PRAM ideal, que no representa explícitamente la creación y gestión de procesos, la cota asintótica del tiempo paralelo es
+La expresión anterior es el modelo de tiempo utilizado para el análisis; sus coeficientes efectivos pueden estimarse a partir de las mediciones. En el modelo PRAM ideal, la cota asintótica del tiempo paralelo es
 \[
 T_p=O\left(\frac{q}{p}nC+\log p\right).
 \]
@@ -298,13 +298,13 @@ T_p=O\left(\frac{q}{p}nC+\log p\right).
 
 Para comparar con la ejecución secuencial, ambas ejecuciones realizan el mismo trabajo de entrenamiento sobre las $q$ semillas. Se representa el tiempo secuencial mediante
 \[
-T_s=c_{seq}+qnC.
+T_s=qnC.
 \]
 El speedup del modelo explícito resulta entonces
 \begin{equation}
 S_p=\frac{T_s}{T_p}
- =\frac{c_{seq}+qnC}
- {c_{seq}+c_{spawn}\,p+\frac{q}{p}nC+c_{red}\log_2 p}.
+ =\frac{qnC}{\frac{q}{p}nC+c_{red}\log_2 p}
+ =\frac{p}{1+\frac{p\,c_{red}\log_2 p}{qnC}}.
 \label{eq:speedup}
 \end{equation}
 
@@ -314,8 +314,7 @@ S_p=\frac{T_s}{T_p}
 La eficiencia mide el speedup promedio obtenido por procesador. A partir de la expresión anterior,
 \begin{equation}
 E_f=\frac{S_p}{p}
- =\frac{1+\frac{c_{seq}}{qnC}}
- {1+\frac{p\left(c_{seq}+c_{spawn}\,p+c_{red}\log_2 p\right)}{qnC}}.
+ =\frac{1}{1+\frac{p\,c_{red}\log_2 p}{qnC}}.
 \label{eq:eficiencia}
 \end{equation}
 
@@ -323,30 +322,29 @@ E_f=\frac{S_p}{p}
 
 \subsubsection{Escalabilidad fuerte}
 
-En escalabilidad fuerte se mantienen fijos $q$ y $n$, y se aumenta $p$ (con $p\le q$ y $p$ divisor de $q$ en las configuraciones medidas). Según el modelo explícito, el trabajo de mapeo disminuye como $q/p$, pero los costos de creación de procesos y reducción aumentan. En la eficiencia, estos costos aparecen como $c_{spawn}p^2/(qnC)$ y $c_{red}p\log_2 p/(qnC)$, además del término lineal asociado a $c_{seq}$. Por ello, añadir procesadores reduce el tiempo solo mientras la disminución del mapeo compense el crecimiento de dichos costos; el modelo permite que el speedup alcance un máximo y luego se degrade si domina la creación de procesos.
+En escalabilidad fuerte se mantienen fijos $q$ y $n$, y se aumenta $p$ (con $p\le q$ y $p$ divisor de $q$ en las configuraciones medidas). Según el modelo explícito, el trabajo de mapeo disminuye como $q/p$, pero el costo de reducción aparece en la eficiencia como $c_{red}\,p\log_2 p/(qnC)$, que crece con $p$. Por ello, añadir procesadores reduce el tiempo de mapeo, pero la eficiencia decae progresivamente y el speedup deja de crecer linealmente a medida que el término logarítmico gana peso relativo; si el problema es pequeño ($qnC$ reducido), el modelo predice que la saturación se alcanza antes.
 
 \subsubsection{Escalabilidad débil e isoeficiencia}
 
-En escalabilidad débil se aumenta $p$ junto con el tamaño del problema para conservar una eficiencia objetivo. La eficiencia detallada incluye dos costos que dependen del número de procesadores: la creación de procesos, mediante $c_{spawn}p^2/(qnC)$, y la reducción, mediante $c_{red}p\log_2 p/(qnC)$. Para que la eficiencia se mantenga constante, cada cociente debe permanecer acotado; por tanto, cada término impone una condición sobre el crecimiento del trabajo:
-\begin{align*}
-\text{Creación de procesos:}\qquad & qnC=\Theta(p^2),\\
-\text{Reducción:}\qquad & qnC=\Theta(p\log_2 p).
-\end{align*}
-El costo fijo $c_{seq}$ añade una condición lineal, $qnC=\Theta(p)$, que queda dominada por las anteriores. Como $p^2$ crece más rápido que $p\log_2 p$, la condición que prevalece en el modelo completo, con $c_{spawn}>0$, es $qnC=\Theta(p^2)$. Si $n$ y $C$ se mantienen constantes, esto requiere que el número de semillas crezca como
+En escalabilidad débil se aumenta $p$ junto con el tamaño del problema para conservar una eficiencia objetivo. En la eficiencia, el costo de reducción aparece como $c_{red}\,p\log_2 p/(qnC)$. Para que la eficiencia se mantenga constante, este cociente debe permanecer acotado, lo que impone una condición sobre el crecimiento del trabajo:
 \[
-q \propto p^2
+qnC=\Theta(p\log_2 p).
 \]
-Si se excluye el costo de creación de procesos y solo se considera la reducción, la condición sería $qnC=\Theta(p\log_2 p)$ y, con $n$ y $C$ fijos, $q=\Theta(p\log_2 p)$. Así, la reducción por sí sola requiere un crecimiento ligeramente mayor que lineal, mientras que en el modelo completo domina el término cuadrático de creación de procesos.
+Si $n$ y $C$ se mantienen constantes, esto requiere que el número de semillas crezca como
+\[
+q \propto p\log_2 p,
+\]
+es decir, a un ritmo ligeramente mayor que lineal.
 
 \subsubsection{Impacto del tamaño del dataset ($n$)}
 
-El paralelismo se aplica sobre las semillas: cada entrenamiento procesa el conjunto completo de $n$ muestras. Con $q$ y $p$ fijos, aumentar $n$ incrementa proporcionalmente el trabajo útil $qnC$, mientras los costos de creación, preparación y reducción del modelo permanecen fijos. Por ello, en el modelo la fracción relativa de esos costos disminuye y la eficiencia mejora. Sin embargo, al escalar débilmente con $q/p$ constante, el tamaño de muestra debe crecer linealmente con $p$ para satisfacer la isoeficiencia $qnC=\Theta(p^2)$ del modelo completo. El análisis experimental permite determinar si este comportamiento ideal se mantiene ante la contención de recursos dentro del nodo.
+El paralelismo se aplica sobre las semillas: cada entrenamiento procesa el conjunto completo de $n$ muestras. Con $q$ y $p$ fijos, aumentar $n$ incrementa proporcionalmente el trabajo útil $qnC$, mientras el costo de reducción del modelo permanece fijo. Por ello, en el modelo la fracción relativa de ese costo disminuye y la eficiencia mejora. Sin embargo, al escalar débilmente con $q/p$ constante, el tamaño de muestra debe crecer como $\log_2 p$ para satisfacer la isoeficiencia $qnC=\Theta(p\log_2 p)$. El análisis experimental permite determinar si este comportamiento ideal se mantiene ante la contención de recursos dentro del nodo.
 
 \subsection{Estrategia de Experimentación}
 
 Para verificar el análisis teórico y cumplir con los requisitos del enunciado, se realizaron dos experimentos complementarios en el clúster Khipu, con $p \in \{1, 2, 4, 8, 16, 32\}$ y manteniendo la condición $q \bmod p = 0$:
 
-\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n = 10000$ y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$, junto con todos los valores de $p$ que dividen cada $q$. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte), mientras que al comparar curvas $q$ crece junto con los recursos (escalabilidad débil). El análisis contrasta estas tendencias con la isoeficiencia del modelo explícito, $qnC=\Theta(p^2)$, y con la condición ideal que considera solo el costo logarítmico de reducción.
+\textbf{Experimento 1 --- Escalabilidad ($n$ fija, barrido $q \times p$):} Se fija $n = 10000$ y se barre el espacio de semillas $q \in \{16, 32, 64, 128, 256\}$, junto con todos los valores de $p$ que dividen cada $q$. Cada valor de $q$ define una curva de escalabilidad: dentro de una curva $q$ es fijo y solo crece $p$ (escalabilidad fuerte), mientras que al comparar curvas $q$ crece junto con los recursos (escalabilidad débil). El análisis contrasta estas tendencias con la condición de isoeficiencia del modelo, $qnC=\Theta(p\log_2 p)$.
 
 \textbf{Experimento 2 --- Impacto de $n$ ($q$ fijo, barrido $n \times p$):} Se fija $q = 32$ y se barre $n \in \{5000, 10000, 20000, 40000\}$ junto con los valores de $p$ que dividen a $q$. Este experimento verifica la predicción de que un $n$ elevado amortiza los overheads y desplaza el punto de saturación.
 
@@ -392,33 +390,34 @@ El desarrollo siguió un proceso incremental de cuatro etapas, registradas en el
 
 Siguiendo la metodología descrita, se ajustó por mínimos cuadrados el modelo en segundos
 \begin{equation}
-T_p^{teo}(q, n, p) = c_{seq} + c_{spawn} \cdot p + a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n + c_{red} \cdot \log_2 p
+T_p^{teo}(q, n, p) = a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n + b \cdot \log_2 p + c
 \label{eq:tpeo}
 \end{equation}
-sobre todas las mediciones de $T_p$ de los dos primeros experimentos, de modo que los coeficientes se reutilizan como referencia en todas las gráficas. Esta es la forma en segundos del modelo explícito de la ecuación~\eqref{eq:tp_explicito}, donde $a$ absorbe la constante $C$ del análisis PRAM. Los resultados fueron:
+sobre todas las mediciones de $T_p$ de los dos primeros experimentos, de modo que los coeficientes se reutilizan como referencia en todas las gráficas. Esta es la forma en segundos del modelo explícito de la ecuación~\eqref{eq:tp_explicito}, donde $a$ absorbe la constante $C$ del análisis PRAM, $b$ representa el costo efectivo por nivel de reducción y $c$ absorbe los costos fijos que el modelo PRAM no contempla. Los resultados se muestran en la Tabla~\ref{tab:coef}:
 
 \begin{table}[H]
 \centering
 \small
 \caption{Coeficientes del ajuste de $T_p^{teo}$ por experimento.}
-\begin{tabular}{lcccc}
+\label{tab:coef}
+\begin{tabular}{lccc}
 \toprule
-Experimento (nodo) & $a$ & $c_{spawn}$ & $c_{red}$ & $c_{seq}$ \\
- & {\scriptsize[s/(modelo$\cdot$muestra)]} & {\scriptsize[s/proceso]} & {\scriptsize[s/nivel]} & {\scriptsize[s]} \\
+Experimento (nodo) & $a$ & $b$ & $c$ \\
+ & {\scriptsize[s/(modelo$\cdot$muestra)]} & {\scriptsize[s/nivel]} & {\scriptsize[s]} \\
 \midrule
-Principal (\texttt{n003}, $n=10000$) & $5.80 \times 10^{-5}$ & $-5.7 \times 10^{-2}$ & $1.24$ & $7.7 \times 10^{-3}$ \\
-Complementario (\texttt{n005}, $n=2000$) & $6.64 \times 10^{-5}$ & $3.1 \times 10^{-3}$ & $0.33$ & $8.4 \times 10^{-2}$ \\
+Principal (\texttt{n003}, $n=10000$) & $5.78 \times 10^{-5}$ & $0.890$ & $0.336$ \\
+Complementario (\texttt{n005}, $n=2000$) & $6.64 \times 10^{-5}$ & $0.343$ & $0.070$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Ambos ajustes explican más del 98\% de la variación observada en $T_p$ ($R^2 = 0.986$ en el experimento principal y $R^2 = 0.988$ en el complementario), por lo que el modelo representa bien la tendencia general de los tiempos medidos. En el término $a\lceil q/p\rceil n$, $\lceil q/p\rceil$ indica cuántos modelos entrena cada proceso y $n$ cuántas muestras procesa cada modelo; por ello, $a$ mide el costo por muestra y por modelo, en segundos. Así, para el experimento principal con $n=10000$, $a n = 5.80\times10^{-5}\times10000 = 0.580$ s es el tiempo estimado para entrenar un modelo completo. Esta estimación concuerda con una medición independiente: para $q=32$, el tiempo secuencial medido fue $T_s\approx18.4$ s, es decir, $T_s/q\approx0.575$ s por modelo. La cercanía entre ambos valores respalda esta interpretación de $a$.
+Ambos ajustes explican más del 98\% de la variación observada en $T_p$ ($R^2 = 0.986$ en el experimento principal y $R^2 = 0.988$ en el complementario), por lo que el modelo representa bien la tendencia general de los tiempos medidos. En el término $a\lceil q/p\rceil n$, $\lceil q/p\rceil$ indica cuántos modelos entrena cada proceso y $n$ cuántas muestras procesa cada modelo; por ello, $a$ mide el costo por muestra y por modelo, en segundos. Así, para el experimento principal con $n=10000$, $a n = 5.78\times10^{-5}\times10000 = 0.578$ s es el tiempo estimado para entrenar un modelo completo. Esta estimación concuerda con una medición independiente: para $q=32$, el tiempo secuencial medido fue $T_s\approx18.4$ s, es decir, $T_s/q\approx0.575$ s por modelo. La cercanía entre ambos valores respalda esta interpretación de $a$.
 
-Un matiz importante: el término $c_{red} \log_2 p$ del modelo teórico no corresponde al tiempo real de la fase de reducción. Las marcas de tiempo muestran que \texttt{t\_reduce} es del orden de milisegundos incluso en $p = 32$ ($\sim$3 ms), mientras que el ajuste requiere $c_{red} \log_2 32 \approx 6.2$ s para describir los datos. En la aproximación teórica, el término logarítmico absorbe los costos de sincronización por nivel (barreras, re-partición de trabajo y esperas de los procesos rápidos), no el árbol de comparaciones en sí. Esta distinción es clave para interpretar el overhead observado.
+Un matiz importante: el término $b \log_2 p$ del modelo teórico no corresponde al tiempo real de la fase de reducción. Las marcas de tiempo muestran que \texttt{t\_reduce} es del orden de milisegundos incluso en $p = 32$ ($\sim$3 ms), mientras que el ajuste requiere $b \log_2 32 \approx 4.5$ s en el experimento principal para describir los datos. En la práctica, el término logarítmico absorbe los costos fijos por nivel de sincronización (barreras, re-partición de trabajo y esperas de los procesos rápidos) junto con parte de la degradación por contención, no el árbol de comparaciones en sí. Esta distinción es clave para interpretar el overhead observado.
 
-\textbf{Interpretación de las constantes.} El coeficiente $a$ mide el costo efectivo por muestra y modelo en el hardware usado: $a \cdot E \cdot d \cdot h$ puede compararse con el $t_c$ teórico del análisis PRAM. La diferencia entre experimentos ($a$ 15\% mayor en el nodo \texttt{n005} que en \texttt{n003}) refleja que los nodos de la partición \texttt{standard} no son homogéneos en rendimiento, lo que valida la decisión de ajustar por experimento y no comparar tiempos absolutos entre corridas. El coeficiente $c_{seq}$ representa el costo fijo por ejecución paralela (consolidación del resultado, asignación de buffers), del mismo orden que el residual no atribuido a las fases medidas. El coeficiente $c_{spawn}$ resultó pequeño en ambos ajustes ($\approx 3$ ms/proceso en el experimento complementario y ligeramente negativo en el principal): el costo real de creación de procesos es sublineal en $p$ y queda en gran parte absorbido por el término logarítmico, por lo que el modelo lineal $c_{spawn}\,p$ actúa como corrección menor más que como término dominante. Esto es consistente con las marcas de tiempo: el tiempo total de creación de procesos es de solo $\sim$3--220 ms, no por proceso.
+\textbf{Interpretación de las constantes.} El coeficiente $a$ mide el costo efectivo por muestra y modelo en el hardware usado: $a \cdot E \cdot d \cdot h$ puede compararse con el $t_c$ teórico del análisis PRAM. La diferencia entre experimentos ($a$ 15\% mayor en el nodo \texttt{n005} que en \texttt{n003}) refleja que los nodos de la partición \texttt{standard} no son homogéneos en rendimiento, lo que valida la decisión de ajustar por experimento y no comparar tiempos absolutos entre corridas. El coeficiente $c$ absorbe los costos fijos por ejecución que el modelo PRAM no contempla (creación del contexto de procesos, difusión de datos, consolidación del resultado), del mismo orden que el tiempo total de \texttt{t\_spawn} medido ($\sim$3--220 ms según $p$).
 
-\textbf{Limitación del ajuste global.} Aunque el $R^2$ es alto, los residuos están estructurados: el modelo no puede capturar que el costo por proceso crece con $p$ de forma superlineal en el régimen de contención (analizado en la Subsección~\ref{subsec:kappa}). En otras palabras, la curva $T_p^{teo}$ es una referencia útil del costo de mapeo más términos de gestión y sincronización, pero no modela la degradación de la fase de mapeo misma cuando los procesos compiten por recursos. Esto se evidencia en la Figura~\ref{fig:esc_tiempos}: para $q$ pequeño y $p$ grande la curva teórica sobreestima $T_p$ (los términos fijos dominan), mientras que para $q$ grande y $p = 32$ la subestima (la contención real supera al término logarítmico).
+\textbf{Limitación del ajuste global.} Aunque el $R^2$ es alto, los residuos están estructurados: el modelo de tres constantes no puede capturar que el costo por proceso crece con $p$ de forma superlineal en el régimen de contención (analizado en la Subsección~\ref{subsec:kappa}). En otras palabras, la curva $T_p^{teo}$ es una referencia útil del costo de mapeo más un término logarítmico efectivo y una constante, pero no modela la degradación de la fase de mapeo misma cuando los procesos compiten por recursos. Esto se evidencia en la Figura~\ref{fig:esc_tiempos}: para $q$ pequeño y $p$ grande la curva teórica sobreestima $T_p$ (el término $b\log_2 p$ domina sobre mapas cortos), mientras que para $q$ grande y $p = 32$ la subestima (la contención real supera al término logarítmico).
 
 \subsection{Análisis de escalabilidad ($n$ fija, barrido $q \times p$)}
 
@@ -464,7 +463,7 @@ $q$ \textbackslash{} $p$ & 1 & 2 & 4 & 8 & 16 & 32 \\
 
 \textbf{Escalabilidad fuerte (cada curva a $q$ fijo).} Dentro de una curva, el problema no crece y solo aumentan los recursos. El comportamiento es consistente para los cinco valores de $q$: la eficiencia ronda 0.9--1.0 en $p = 2$, se mantiene entre 0.63 y 0.75 en $p = 8$ con speedups de 5--6, cae a $\approx 0.55$ en $p = 16$, y colapsa a $\approx 0.23$--$0.24$ en $p = 32$. Es decir, la escalabilidad fuerte se mantiene de forma aceptable hasta $p \approx 8$, se degrada en $p = 16$ y se rompe abruptamente en $p = 32$: el speedup máximo medido es $S_p \approx 9$ en $p = 16$ y \emph{decrece} a $S_p \approx 7.5$ en $p = 32$ (Figura~\ref{fig:esc_speedup}), por lo que agregar más procesos más allá de ese punto es contraproducente.
 
-\textbf{Escalabilidad débil (comparación entre curvas).} En el modelo ideal que considera el costo logarítmico de reducción, mantener la eficiencia requiere que el trabajo crezca como $qnC=\Theta(p\log p)$. Al incluir el costo lineal de creación por proceso, el modelo explícito eleva la condición de isoeficiencia a $qnC=\Theta(p^2)$. Los datos muestran un resultado mixto: en el régimen $p \le 16$, la eficiencia es prácticamente la misma para todos los $q$ (banda de $\pm 0.02$ alrededor de $\approx 0.55$--$0.65$ según $p$), lo que indica que aumentar el trabajo compensa parcialmente los costos adicionales. En cambio, en $p = 32$ el piso de eficiencia es $\approx 0.23$ para \emph{todos} los $q$ (de 32 a 256 semillas): octuplicar el trabajo no recupera eficiencia. La configuración límite $q = p$ (un solo modelo por proceso) ilustra el fallo de la isoeficiencia: en el experimento complementario ($n = 2000$), $E_f = 0.59$, $0.47$ y $0.24$ para $p = 8$, $16$ y $32$, muy por debajo del $E_f \approx 1$ que predice el modelo ideal cuando el trabajo por procesador iguala al overhead. La razón del desvío se analiza a continuación.
+\textbf{Escalabilidad débil (comparación entre curvas).} El modelo teórico predice que mantener la eficiencia requiere que el trabajo crezca como $qnC=\Theta(p\log_2 p)$. Los datos muestran un resultado mixto: en el régimen $p \le 16$, la eficiencia es prácticamente la misma para todos los $q$ (banda de $\pm 0.02$ alrededor de $\approx 0.55$--$0.65$ según $p$), lo que indica que aumentar el trabajo compensa los costos adicionales. En cambio, en $p = 32$ el piso de eficiencia es $\approx 0.23$ para \emph{todos} los $q$ (de 32 a 256 semillas): octuplicar el trabajo no recupera eficiencia. La configuración límite $q = p$ (un solo modelo por proceso) ilustra el fallo de la isoeficiencia: en el experimento complementario ($n = 2000$), $E_f = 0.59$, $0.47$ y $0.24$ para $p = 8$, $16$ y $32$, muy por debajo del $E_f \approx 1$ que predice el modelo cuando el trabajo por procesador iguala al costo de reducción. La razón del desvío se analiza a continuación.
 
 \textbf{El cuello de botella no es la reducción.} El desglose por fases muestra que el tiempo de la reducción permanece en el orden de milisegundos ($< 4$ ms incluso en $p = 32$) y la creación de procesos en $\sim$0.2 s como máximo. El componente que crece es la propia fase de mapeo: el tiempo por modelo se infla progresivamente con $p$. Para $q = 32$, $n = 10000$ (costo secuencial por modelo $\approx 0.575$ s), el tiempo efectivo por modelo en cada proceso pasa de $0.58$ s en $p = 1$ a $0.64$ s ($p=2$), $0.78$ s ($p=4$), $0.88$ s ($p=8$), $1.02$ s ($p=16$) y $2.41$ s ($p=32$): una degradación de hasta $4.2\times$. Este fenómeno se confirma con el contador de cambios de contexto voluntarios (\texttt{nivcsw}), que salta de decenas a más de 500--1500 en $p = 32$.
 
@@ -551,11 +550,11 @@ T_p^{teo} = a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n \cdot \left(1 +
 \end{equation}
 Ajustado sobre las configuraciones del experimento complementario con $p \le 16$ (el régimen sin el salto de contención), se obtiene $\gamma = 0.127$ con $R^2 = 0.999$ y un error relativo medio de $6.5\%$, frente a $38\%$ del modelo aditivo~\eqref{eq:tpeo} sobre los mismos puntos. La interpretación es que cada duplicación del número de procesos activos hace que cada entrenamiento sea $\sim$13\% más lento. Este modelo describe bien el régimen moderado pero, por construcción, no reproduce el salto de $\kappa$ en $p = 32$ (donde el factor crece mucho más rápido que $\log_2 p$); se reporta como evidencia de que la contención tiene una forma suave y predecible antes del quiebre, más que como reemplazo del modelo principal.
 
-\textbf{Verificación contra la eficiencia teórica.} La eficiencia que implica el modelo ajustado, $E_f^{teo} = T_s^{teo}/(p \cdot T_p^{teo})$, puede evaluarse para cada configuración y compararse con la medida. El resultado es que el modelo \textbf{no reproduce} la eficiencia medida en el régimen de contención, y el signo del error depende de la razón $q/p$: para $q = 32$, $n = 10000$, $p = 32$ predice $E_f \approx 0.12$ mientras el valor medido es $0.24$ (el modelo es pesimista porque el término $c_{red}\log_2 p$ domina sobre un mapa de un solo modelo por proceso), mientras que para $q = 256$, $p = 32$ predice $0.51$ frente a $0.23$ medido (optimista porque subestima la contención durante mapas largos). En el régimen sin contención ($p \le 8$) ambas coinciden razonablemente (errores del orden de 0.05--0.15). Esto confirma que el término $c_{red} \log_2 p$ no representa un overhead fijo por nivel sino una mezcla de efectos que no escala como $\log p$, y que el modelo PRAM describe correctamente el costo de mapeo $O(q n C / p)$ pero no contempla un factor de contención $\kappa(p)$ que domina cuando $p$ se acerca al número de recursos físicos del nodo.
+\textbf{Verificación contra la eficiencia teórica.} La eficiencia que implica el modelo ajustado, $E_f^{teo} = T_s^{teo}/(p \cdot T_p^{teo})$ con $T_s^{teo}$ evaluado en $p = 1$, puede evaluarse para cada configuración y compararse con la medida. El resultado es que el modelo \textbf{no reproduce} la eficiencia medida y el signo del error depende de la razón $q/p$: para $q = 32$, $n = 10000$, $p = 32$ predice $E_f \approx 0.11$ mientras el valor medido es $0.24$ (el modelo es pesimista porque el término $b\log_2 p$ domina sobre un mapa de un solo modelo por proceso), mientras que para $q = 256$, $p = 32$ predice $0.49$ frente a $0.23$ medido (optimista porque subestima la contención durante mapas largos). El desvío no se limita al régimen de contención: incluso para $p \le 8$ el modelo sesga la eficiencia, subestimándola cuando $q$ es pequeño (el término logarítmico domina sobre mapas cortos) y sobrestimándola cuando $q$ es grande (no contempla la contención gradual). Esto confirma que el término $b \log_2 p$ no representa un overhead fijo por nivel sino una mezcla de efectos que no escala como $\log p$, y que el modelo PRAM describe correctamente el costo de mapeo $O(q n C / p)$ pero no contempla un factor de contención $\kappa(p)$ que domina cuando $p$ se acerca al número de recursos físicos del nodo.
 
 \subsection{Impacto del tamaño del dataset ($q$ fijo, barrido $n \times p$)}
 
-Con $q = 32$ fijo, la pregunta central es si aumentar $n$ amortigua los overheads y mejora la eficiencia, tal como predice el análisis teórico ($E_f \to 1$ cuando el trabajo de mapeo domina los costos fijos de gestión y sincronización). La Figura~\ref{fig:imp_ef} muestra $E_f$ vs.\ $p$ con una curva por cada $n$, y la Tabla~\ref{tab:ef_n} resume los valores.
+Con $q = 32$ fijo, la pregunta central es si aumentar $n$ amortigua los overheads y mejora la eficiencia, tal como predice el análisis teórico ($E_f \to 1$ cuando el trabajo de mapeo domina el término de reducción). La Figura~\ref{fig:imp_ef} muestra $E_f$ vs.\ $p$ con una curva por cada $n$, y la Tabla~\ref{tab:ef_n} resume los valores.
 
 \begin{figure}[H]
 \centering

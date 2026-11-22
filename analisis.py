@@ -11,8 +11,8 @@ import pandas as pd
 
 
 def _matriz(df):
-    return np.column_stack([np.ceil(df.q / df.p) * df.n, df.p.astype(float),
-                            np.log2(df.p), np.ones(len(df))])
+    return np.column_stack([np.ceil(df.q / df.p) * df.n, np.log2(df.p),
+                            np.ones(len(df))])
 
 
 def ajustar(df):
@@ -27,8 +27,8 @@ def r2(df, coef):
 
 
 def teoria(coef, n, q, p):
-    a, cs, cr, c0 = coef
-    return a * math.ceil(q / p) * n + cs * p + cr * math.log2(p) + c0
+    a, b, c = coef
+    return a * math.ceil(q / p) * n + b * math.log2(p) + c
 
 
 def metricas(med, exp):
@@ -213,11 +213,10 @@ def main():
         return
     todos = pd.concat(partes)
     coef = ajustar(todos)
-    lineas = ["T_p = a*ceil(q/p)*n + c_spawn*p + c_red*log2(p) + c_seq  (ajuste conjunto de los casos presentes)",
+    lineas = ["T_p = a*ceil(q/p)*n + b*log2(p) + c  (ajuste conjunto de los casos presentes)",
               f"a      = {coef[0]:.6e} s/(modelo*muestra)",
-              f"c_spawn= {coef[1]:.6e} s/proceso",
-              f"c_red  = {coef[2]:.6e} s/nivel",
-              f"c_seq  = {coef[3]:.6e} s",
+              f"b      = {coef[1]:.6e} s/nivel",
+              f"c      = {coef[2]:.6e} s",
               f"R^2 global = {r2(todos, coef):.5f}"]
 
     if E is not None:
