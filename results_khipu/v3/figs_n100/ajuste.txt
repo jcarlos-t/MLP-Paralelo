@@ -1,7 +1,17 @@
-T_p = a*ceil(q/p)*n + c_spawn*p + c_red*log2(p) + c_seq  (ajuste conjunto de los casos presentes)
-a      = 2.019748e-04 s/(modelo*muestra)
-c_spawn= -1.821841e-02 s/proceso
-c_red  = 2.409803e-01 s/nivel
-c_seq  = -1.438153e-01 s
-R^2 global = 0.98588
-R^2 escalabilidad = 0.98588
+T_p = a*ceil(q/p)*n + b*log2(p) + c  (ajuste conjunto de los casos presentes)
+a      = 2.012765e-04 s/(modelo*muestra)
+b      = 1.401347e-01 s/nivel
+c      = -7.025279e-02 s
+R^2 global = 0.98548
+
+T_p = kappa(p)*a*ceil(q/p)*n + b_p  (una recta por p; a = pendiente con p=1)
+a      = 1.964351e-04 s/(modelo*muestra)
+p=  1  kappa=1.000  b_p=+0.0130 s
+p=  2  kappa=1.023  b_p=+0.0168 s
+p=  4  kappa=1.169  b_p=+0.0227 s
+p=  8  kappa=1.968  b_p=+0.0579 s
+p= 16  kappa=2.029  b_p=+0.0841 s
+p= 32  kappa=2.820  b_p=+0.1209 s
+aditivo  R^2=0.98548  err_rel_medio=91.8%  err_rel_max=431%  err_medio_E=0.178
+kappa    R^2=0.99997  err_rel_medio=5.2%  err_rel_max=29%  err_medio_E=0.019
+R^2 escalabilidad = 0.98548

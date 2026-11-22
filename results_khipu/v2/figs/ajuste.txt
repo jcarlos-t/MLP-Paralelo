@@ -3,5 +3,16 @@ a      = 6.642269e-05 s/(modelo*muestra)
 b      = 3.433976e-01 s/nivel
 c      = 6.968604e-02 s
 R^2 global = 0.98765
+
+T_p = kappa(p)*a*ceil(q/p)*n + b_p  (una recta por p; a = pendiente con p=1)
+a      = 6.400539e-05 s/(modelo*muestra)
+p=  1  kappa=1.000  b_p=+0.3996 s
+p=  2  kappa=1.098  b_p=+0.1143 s
+p=  4  kappa=1.281  b_p=+0.1561 s
+p=  8  kappa=1.463  b_p=+0.1267 s
+p= 16  kappa=1.712  b_p=+0.0853 s
+p= 32  kappa=4.388  b_p=-0.0605 s
+aditivo  R^2=0.98765  err_rel_medio=85.3%  err_rel_max=677%  err_medio_E=0.155
+kappa    R^2=0.99973  err_rel_medio=6.0%  err_rel_max=68%  err_medio_E=0.035
 R^2 escalabilidad = 0.98835
 R^2 impacto de n = 0.98712
