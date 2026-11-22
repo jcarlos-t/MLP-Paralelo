@@ -231,8 +231,8 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
 </section>
 
 <!-- 2 PROBLEMA -->
-<section class="slide light" data-sec="El problema" data-notes="El algoritmo secuencial recorre las semillas una por una: entrena, evalúa y se queda con la mejor. Con 256 semillas y n igual a 10 mil, eso son 144 segundos medidos en Khipu. Lo importante es que ninguna red necesita a otra para entrenar.">
-  <div class="head"><p class="eyebrow a">El problema</p><h2 class="a" style="--d:100ms">Entrenar muchas redes para quedarse con una</h2></div>
+<section class="slide light" data-sec="1 · Introducción" data-notes="El algoritmo secuencial recorre las semillas una por una: entrena, evalúa y se queda con la mejor. Con 256 semillas y n igual a 10 mil, eso son 144 segundos medidos en Khipu. Lo importante es que ninguna red necesita a otra para entrenar.">
+  <div class="head"><p class="eyebrow a">Introducción · el problema</p><h2 class="a" style="--d:100ms">Entrenar muchas redes para quedarse con una</h2></div>
   <p class="body a" style="--d:200ms;width:1300px">Cada semilla inicializa los pesos de forma distinta, y la red aprende distinto. Para elegir el mejor modelo <b>M*</b> hay que entrenar las <span class="t">q</span> redes y comparar su exactitud en el conjunto de prueba.</p>
   <div class="row" style="margin-top:56px;align-items:center;gap:28px">
     <div class="card a s" style="--d:350ms;width:430px"><p class="num t" data-count="256">256</p><p class="small">semillas (q)</p></div>
@@ -245,8 +245,8 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
 </section>
 
 <!-- 3 IDEA -->
-<section class="slide dark" data-sec="La idea" data-notes="Arriba, un solo proceso entrena las ocho semillas en fila. Abajo, cuatro procesos se reparten las semillas de forma cíclica: el proceso 0 toma la 0 y la 4, el 1 la 1 y la 5, y así. Si nada se interpone, terminan cuatro veces antes.">
-  <div class="head"><p class="eyebrow a">La idea</p><h2 class="a" style="--d:100ms">El mismo trabajo, repartido entre procesos</h2></div>
+<section class="slide dark" data-sec="1 · Introducción" data-notes="Arriba, un solo proceso entrena las ocho semillas en fila. Abajo, cuatro procesos se reparten las semillas de forma cíclica: el proceso 0 toma la 0 y la 4, el 1 la 1 y la 5, y así. Si nada se interpone, terminan cuatro veces antes.">
+  <div class="head"><p class="eyebrow a">Introducción · la idea</p><h2 class="a" style="--d:100ms">El mismo trabajo, repartido entre procesos</h2></div>
   <div class="row" style="align-items:center;gap:8px">
     <p class="lane" style="width:260px">Secuencial · p = 1</p>
     <div class="blk a l" style="--d:200ms">s0</div><div class="blk a l" style="--d:300ms">s1</div><div class="blk a l" style="--d:400ms">s2</div><div class="blk a l" style="--d:500ms">s3</div><div class="blk a l" style="--d:600ms">s4</div><div class="blk a l" style="--d:700ms">s5</div><div class="blk a l" style="--d:800ms">s6</div><div class="blk a l" style="--d:900ms">s7</div>
@@ -268,8 +268,8 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
 </section>
 
 <!-- 4 PRAM -->
-<section class="slide light" data-sec="Diseño" data-notes="En el modelo PRAM CREW todos leen los mismos datos y cada uno escribe en su casilla. El Map no necesita comunicación. El Reduce es un árbol binario: con 8 procesos son 3 niveles, y el ganador queda en la posición 0.">
-  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Diseño</p><h2 class="a" style="--d:100ms">Algoritmo PRAM CREW: Map y Reduce en árbol</h2></div>
+<section class="slide light" data-sec="2 · Método" data-notes="En el modelo PRAM CREW todos leen los mismos datos y cada uno escribe en su casilla. El Map no necesita comunicación. El Reduce es un árbol binario: con 8 procesos son 3 niveles, y el ganador queda en la posición 0.">
+  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Método · diseño PRAM</p><h2 class="a" style="--d:100ms">Algoritmo PRAM CREW: Map y Reduce en árbol</h2></div>
   <div class="row" style="gap:80px;align-items:flex-start">
     <div class="col" style="width:820px;gap:22px">
       <div class="card a" style="--d:200ms"><p class="card-t">1 · Preparación</p><p class="small">Se dividen los datos en entrenamiento y prueba una sola vez. Todos los procesos los leen a la vez (lectura concurrente).</p></div>
@@ -293,8 +293,8 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
 </section>
 
 <!-- ALGORITMO -->
-<section class="slide dark" data-sec="Diseño" data-notes="Este es el algoritmo paralelo del informe. Primero se dividen los datos y se dejan en memoria compartida, una sola vez. El Map es un for pardo sobre las semillas: cada entrenamiento es independiente, así que en el PRAM ideal hay un procesador por semilla. Luego el Reduce: un árbol binario de log2 q niveles; en cada nivel la mitad de los procesadores compara su exactitud con la de su vecino y se queda el mejor. Al final M* está en la posición 0. En la implementación hay p procesos, no q: el proceso i toma las semillas con s mod p igual a i, guarda su mejor local, y el árbol solo compara p candidatos.">
-  <div class="head" style="margin-bottom:28px"><p class="eyebrow a">Diseño · pseudocódigo</p><h2 class="a" style="--d:100ms">El algoritmo paralelo (CREW PRAM)</h2></div>
+<section class="slide dark" data-sec="2 · Método" data-notes="Este es el algoritmo paralelo del informe. Primero se dividen los datos y se dejan en memoria compartida, una sola vez. El Map es un for pardo sobre las semillas: cada entrenamiento es independiente, así que en el PRAM ideal hay un procesador por semilla. Luego el Reduce: un árbol binario de log2 q niveles; en cada nivel la mitad de los procesadores compara su exactitud con la de su vecino y se queda el mejor. Al final M* está en la posición 0. En la implementación hay p procesos, no q: el proceso i toma las semillas con s mod p igual a i, guarda su mejor local, y el árbol solo compara p candidatos.">
+  <div class="head" style="margin-bottom:28px"><p class="eyebrow a">Método · algoritmo paralelo</p><h2 class="a" style="--d:100ms">El algoritmo paralelo (CREW PRAM)</h2></div>
   <div class="row" style="gap:44px;align-items:flex-start">
     <div class="code a l" style="--d:200ms;width:1080px;padding:24px 34px">
       <p class="cap">Algoritmo 2 · Entrenamiento paralelo de múltiples MLP</p>
@@ -308,28 +308,9 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
   </div>
 </section>
 
-<!-- 5 TEORIA -->
-<section class="slide light" data-sec="Teoría" data-notes="Con el modelo PRAM: el trabajo total es q entrenamientos de costo nC. El span es un entrenamiento más el árbol. El tiempo paralelo es el Map, q sobre p modelos por proceso, más la reducción en log2 p niveles. En la eficiencia, la reducción aparece como c_red por p log p sobre qnC; para que la eficiencia se mantenga, ese cociente debe quedar acotado. Esa es la cota de isoeficiencia: qnC del orden de p log p, es decir, con n fijo las semillas deben crecer como p log p, un poco más rápido que lineal.">
-  <div class="head" style="margin-bottom:34px"><p class="eyebrow a">Análisis teórico</p><h2 class="a" style="--d:100ms">Lo que dice el modelo PRAM</h2></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1.62fr;gap:26px">
-    <div class="card a s" style="--d:200ms"><p class="card-t">Trabajo</p><p class="card-f">W = O(q·n·C)</p><p class="small">q entrenamientos de costo n·C, con C = E·d·h·t_c.</p></div>
-    <div class="card a s" style="--d:300ms"><p class="card-t">Span</p><p class="card-f">T∞ = O(n·C + log q)</p><p class="small">Un entrenamiento más los log₂q niveles del árbol.</p></div>
-    <div class="card a s" style="--d:400ms"><p class="card-t">Tiempo paralelo</p><p class="card-f" style="font-size:27px">Tp = (q/p)·nC + c_red·log₂p</p><p class="small">Map de q/p modelos por proceso y árbol de log₂p niveles. En el PRAM ideal: O(qnC/p + log p).</p></div>
-    <div class="card a s" style="--d:500ms"><p class="card-t">Speedup</p><p class="card-f fq">S = <span class="fr"><span>p</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">Ts / Tp con Ts = q·n·C</p></div>
-    <div class="card a s" style="--d:600ms"><p class="card-t">Eficiencia</p><p class="card-f fq">E = <span class="fr"><span>1</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">S / p: tiende a 1 si qnC ≫ p·log₂p</p></div>
-    <div class="card a s" style="--d:700ms;--kc:var(--grana);border-top-color:var(--grana)">
-      <p class="card-t">Isoeficiencia · cota del modelo</p>
-      <div class="iso"><span>la reducción aporta</span><b>c_red·p·log₂p / (qnC)</b>
-        <span>para E constante</span><b>qnC = Θ(p·log₂p)</b>
-        <span>con n y C fijos</span><b class="am">q ∝ p·log₂p</b></div>
-      <p class="small" style="margin-top:12px">Las semillas deben crecer a un ritmo ligeramente mayor que lineal.</p>
-    </div>
-  </div>
-</section>
-
 <!-- 7 MLP -->
-<section class="slide dark" data-sec="El código" data-notes="La unidad de trabajo es entrenar un perceptrón de una capa oculta. Las dos multiplicaciones de matrices dominan el costo, por eso es E por n por d por h. B igual a 1024 no es mini-batch: recorremos los datos en bloques que caben en caché, sumamos el gradiente y actualizamos una vez por época.">
-  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">El código · la tarea</p><h2 class="a" style="--d:100ms">Cada tarea: entrenar un MLP 20-32-1</h2></div>
+<section class="slide dark" data-sec="2 · Método" data-notes="La unidad de trabajo es entrenar un perceptrón de una capa oculta. Las dos multiplicaciones de matrices dominan el costo, por eso es E por n por d por h. B igual a 1024 no es mini-batch: recorremos los datos en bloques que caben en caché, sumamos el gradiente y actualizamos una vez por época.">
+  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Método · entrenamiento de cada MLP</p><h2 class="a" style="--d:100ms">Cada tarea: entrenar un MLP 20-32-1</h2></div>
   <div class="row" style="gap:48px;align-items:flex-start">
     <div class="col" style="width:620px;gap:26px">
       <div class="row a" style="--d:200ms;flex-wrap:wrap;gap:12px"><span class="chip">d = 20 entradas</span><span class="chip">h = 32 ocultas</span><span class="chip">1 salida · sigmoide</span><span class="chip">E = 200 épocas</span><span class="chip">η = 2.0</span><span class="chip">α = 10⁻⁴</span><span class="chip">B = 1024</span></div>
@@ -355,66 +336,47 @@ pre.algo .mapc{color:#E0A846} pre.algo .redc{color:#E07A6E}
   </div>
 </section>
 
-<!-- 9 IMPLEMENTACION -->
-<section class="slide dark" data-sec="El código" data-notes="Así se ve el algoritmo PRAM en Python. Cada proceso recorre sus semillas, guarda su mejor modelo en su fila y espera en la barrera. Luego el árbol: en cada nivel la mitad de los procesos activos compara con su vecino. 705 son los pesos de un modelo: 20·32 + 32 + 32 + 1.">
-  <div class="head" style="margin-bottom:30px"><p class="eyebrow a">El código · versión final</p><h2 class="a" style="--d:100ms">Un proceso por fila de memoria compartida</h2></div>
-  <div class="row" style="gap:40px;align-items:flex-start">
-    <div class="code a l" style="--d:200ms;width:1010px">
-      <p class="cap">mlp_paralelo.py · _worker (extracto)</p>
-<pre><span class="k">def</span> _worker(i, p, q, ...):
-    <span class="k">for</span> s <span class="k">in</span> range(i, q, p):           <span class="cm"># Map: s mod p</span>
-        m = entrenar_mlp(s, X_tr, y_tr)
-        a = accuracy(m, X_te, y_te)
-        <span class="k">if</span> a &gt; a_loc: a_loc, s_loc, m_loc = a, s, m
-    A[i], S[i], W[i] = a_loc, s_loc, m_loc
-    <span class="s">barrera.wait()</span>
-    <span class="k">for</span> d <span class="k">in</span> range(ceil(log2(p))):     <span class="cm"># Reduce</span>
-        <span class="k">if</span> i &lt; ceil(p / 2**(d + 1)):
-            j, k = 2*i * 2**d, (2*i + 1) * 2**d
-            <span class="k">if</span> k &lt; p <span class="k">and</span> A[j] &lt; A[k]:
-                A[j], S[j], W[j] = A[k], S[k], W[k]
-        <span class="s">barrera.wait()</span></pre>
-    </div>
-    <div class="col" style="width:614px;gap:20px">
-      <div class="card a" style="--d:400ms"><p class="card-t c">Lectura concurrente</p><p class="small">X_tr, y_tr, X_te, y_te: los hijos los heredan con fork (copy-on-write), sin copiar los datos.</p></div>
-      <div class="card a" style="--d:550ms"><p class="card-t c">Escritura exclusiva</p><p class="small">A[p] exactitudes, S[p] semillas y W[p × 705] pesos en RawArray: una fila por proceso.</p></div>
-      <div class="card a" style="--d:700ms"><p class="card-t am">Sincronización</p><p class="small">Barrier(p) al cerrar el Map y en cada nivel del árbol. BLAS a 1 hilo por proceso.</p></div>
+<!-- 5 TEORIA -->
+<section class="slide light" data-sec="2 · Método" data-notes="Con el modelo PRAM: el trabajo total es q entrenamientos de costo nC. El span es un entrenamiento más el árbol. El tiempo paralelo es el Map, q sobre p modelos por proceso, más la reducción en log2 p niveles. En la eficiencia, la reducción aparece como c_red por p log p sobre qnC; para que la eficiencia se mantenga, ese cociente debe quedar acotado. Esa es la cota de isoeficiencia: qnC del orden de p log p, es decir, con n fijo las semillas deben crecer como p log p, un poco más rápido que lineal.">
+  <div class="head" style="margin-bottom:34px"><p class="eyebrow a">Método · análisis de métricas y complejidad</p><h2 class="a" style="--d:100ms">Lo que dice el modelo PRAM</h2></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1.62fr;gap:26px">
+    <div class="card a s" style="--d:200ms"><p class="card-t">Trabajo</p><p class="card-f">W = O(q·n·C)</p><p class="small">q entrenamientos de costo n·C, con C = E·d·h·t_c.</p></div>
+    <div class="card a s" style="--d:300ms"><p class="card-t">Span</p><p class="card-f">T∞ = O(n·C + log q)</p><p class="small">Un entrenamiento más los log₂q niveles del árbol.</p></div>
+    <div class="card a s" style="--d:400ms"><p class="card-t">Tiempo paralelo</p><p class="card-f" style="font-size:27px">Tp = (q/p)·nC + c_red·log₂p</p><p class="small">Map de q/p modelos por proceso y árbol de log₂p niveles. En el PRAM ideal: O(qnC/p + log p).</p></div>
+    <div class="card a s" style="--d:500ms"><p class="card-t">Speedup</p><p class="card-f fq">S = <span class="fr"><span>p</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">Ts / Tp con Ts = q·n·C</p></div>
+    <div class="card a s" style="--d:600ms"><p class="card-t">Eficiencia</p><p class="card-f fq">E = <span class="fr"><span>1</span><span>1 + p·c_red·log₂p / qnC</span></span></p><p class="small">S / p: tiende a 1 si qnC ≫ p·log₂p</p></div>
+    <div class="card a s" style="--d:700ms;--kc:var(--grana);border-top-color:var(--grana)">
+      <p class="card-t">Isoeficiencia · cota del modelo</p>
+      <div class="iso"><span>la reducción aporta</span><b>c_red·p·log₂p / (qnC)</b>
+        <span>para E constante</span><b>qnC = Θ(p·log₂p)</b>
+        <span>con n y C fijos</span><b class="am">q ∝ p·log₂p</b></div>
+      <p class="small" style="margin-top:12px">Las semillas deben crecer a un ritmo ligeramente mayor que lineal.</p>
     </div>
   </div>
 </section>
 
-<!-- 10 INSTRUMENTACION -->
-<section class="slide light" data-sec="El código" data-notes="Cada proceso anota cuándo arranca, cuándo termina su Map y cuándo termina el árbol. Con esas marcas sacamos spawn, Map (que incluye esperar en la barrera al más lento) y reducción. Como los procesos arrancan escalonados, spawn y Map se solapan un poco y el residuo sale negativo.">
-  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">El código · medición</p><h2 class="a" style="--d:100ms">Cada proceso marca tres tiempos</h2></div>
-  <div class="row" style="gap:48px;align-items:flex-start">
-    <div class="col" style="gap:12px;width:1348px">
-      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:128px;font-size:24px">P0</p><div class="gx" style="--d:200ms;width:900px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:160px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
-      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:168px;font-size:24px">P1</p><div class="gx" style="--d:300ms;width:880px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:140px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
-      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:208px;font-size:24px">P2</p><div class="gx" style="--d:400ms;width:940px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:40px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
-      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:248px;font-size:24px">P3</p><div class="gx" style="--d:500ms;width:860px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:80px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
-      <div class="reveal" style="--d:1500ms;position:relative;width:1348px;height:90px">
-        <div style="position:absolute;left:128px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:248px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:1188px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:1345px;top:0;width:3px;height:28px;background:var(--text-l)"></div>
-        <p class="ax" style="left:116px;top:34px;color:var(--text-l)">t0</p><p class="ax" style="left:236px;top:34px;color:var(--text-l)">último arranque</p><p class="ax" style="left:1100px;top:34px;color:var(--text-l)">barrera</p><p class="ax" style="left:1210px;top:62px;color:var(--text-l)">fin Reduce</p>
-      </div>
-    </div>
-    <div class="col a f" style="--d:1500ms;gap:18px;width:260px">
-      <div class="legend"><div class="sw" style="background:var(--anil)"></div><p class="small">Map</p></div>
-      <div class="legend"><div class="sw" style="border:3px dashed #A8977A"></div><p class="small">espera</p></div>
-      <div class="legend"><div class="sw" style="background:var(--grana)"></div><p class="small">Reduce</p></div>
-    </div>
+<!-- 12 EXPERIMENTOS -->
+<section class="slide light" data-sec="2 · Método" data-notes="Hicimos tres campañas. La v1 es la principal, con n igual a 10 mil. La v2 repite el diseño con n más chico y extiende el impacto de n hasta 500. La v3 lleva n a 100 para ver qué pasa cuando crear procesos cuesta tanto como entrenar.">
+  <div class="head"><p class="eyebrow a">Método · estrategia de experimentación</p><h2 class="a" style="--d:100ms">Tres corridas, cinco jobs</h2></div>
+  <table class="tb">
+    <tr class="a" style="--d:200ms"><th style="width:10%">Corrida</th><th style="width:10%">Nodo</th><th style="width:11%">Job</th><th style="width:22%">Qué se mide</th><th style="width:33%">Rejilla</th><th style="width:14%;text-align:right">Duración</th></tr>
+    <tr class="a l" style="--d:300ms"><td>v1</td><td>n003</td><td class="mono">61885</td><td>Escalabilidad</td><td>n = 10 000 · q de 16 a 256</td><td style="text-align:right">93 min</td></tr>
+    <tr class="a l" style="--d:400ms"><td>v1</td><td>n003</td><td class="mono">61886</td><td>Impacto de n</td><td>q = 32 · n de 5000 a 40 000</td><td style="text-align:right">40 min</td></tr>
+    <tr class="a l" style="--d:500ms"><td>v2</td><td>n005</td><td class="mono">62094</td><td>Escalabilidad</td><td>n = 2000 · q de 8 a 256</td><td style="text-align:right">22 min</td></tr>
+    <tr class="a l" style="--d:600ms"><td>v2</td><td>n005</td><td class="mono">62095</td><td>Impacto de n</td><td>q = 32 · n de 500 a 40 000</td><td style="text-align:right">53 min</td></tr>
+    <tr class="a l" style="--d:700ms"><td>v3</td><td>n003</td><td class="mono">63519</td><td>Régimen extremo</td><td>n = 100 · q de 8 a 1024</td><td style="text-align:right">9 min</td></tr>
+  </table>
+  <div class="row" style="margin-top:44px;gap:20px;flex-wrap:wrap">
+    <span class="chip a s" style="--d:900ms">p ∈ {1, 2, 4, 8, 16, 32}, solo q múltiplo de p</span>
+    <span class="chip a s" style="--d:1000ms">6 repeticiones por configuración</span>
+    <span class="chip a s" style="--d:1100ms">≈ 1100 filas de CSV</span>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 48px;margin-top:20px">
-    <p class="mono a" style="--d:1700ms;font-size:25px"><span class="t">t_spawn</span> = max(enter) − t0</p>
-    <p class="mono a" style="--d:1700ms;font-size:25px"><span class="t">t_map</span> = max(map_end) − min(enter)</p>
-    <p class="mono a" style="--d:1800ms;font-size:25px"><span class="t">t_reduce</span> = max(red_end) − max(map_end)</p>
-    <p class="mono a" style="--d:1800ms;font-size:25px"><span class="t">t_other</span> = t_total − (las tres)</p>
-  </div>
-  <p class="small a" style="--d:1950ms;margin-top:22px;width:1600px">Spawn y Map se solapan (el primer proceso entrena mientras nacen los demás), por eso t_other sale negativo, unos −0.04 s con p = 16. nivcsw cuenta cambios de contexto involuntarios.</p>
+  <p class="small a" style="--d:1200ms;margin-top:28px">Cada corrida se analiza con su propio ajuste: los segundos de nodos distintos no se comparan entre sí.</p>
 </section>
 
 <!-- 11 KHIPU -->
-<section class="slide dark" data-sec="Ejecución" data-notes="Cada corrida es un job de Slurm en un solo nodo. La cuenta de pregrado permite 32 CPUs, pero en Khipu una CPU de Slurm es un hilo de hyperthreading: son 16 núcleos reales. Con 16 procesos cabe uno por núcleo; con 32, dos procesos comparten cada núcleo. Fijamos BLAS a un hilo para que el único paralelismo sea el nuestro.">
-  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Ejecución</p><h2 class="a" style="--d:100ms">Dónde corrió: un nodo de Khipu</h2></div>
+<section class="slide dark" data-sec="3 · Resultados" data-notes="Cada corrida es un job de Slurm en un solo nodo. La cuenta de pregrado permite 32 CPUs, pero en Khipu una CPU de Slurm es un hilo de hyperthreading: son 16 núcleos reales. Con 16 procesos cabe uno por núcleo; con 32, dos procesos comparten cada núcleo. Fijamos BLAS a un hilo para que el único paralelismo sea el nuestro.">
+  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Resultados · configuración experimental</p><h2 class="a" style="--d:100ms">Dónde corrió: un nodo de Khipu</h2></div>
   <div class="row" style="gap:64px;align-items:flex-start">
     <div class="col" style="width:740px;gap:24px">
       <p class="body a" style="--d:200ms">Slurm entrega <span class="c">32 CPUs = 16 núcleos físicos × 2 hilos</span> (hyperthreading).</p>
@@ -442,49 +404,89 @@ python3 bench.py --ns 2000 \
   </div>
 </section>
 
-<!-- 12 EXPERIMENTOS -->
-<section class="slide light" data-sec="Ejecución" data-notes="Hicimos tres campañas. La v1 es la principal, con n igual a 10 mil. La v2 repite el diseño con n más chico y extiende el impacto de n hasta 500. La v3 lleva n a 100 para ver qué pasa cuando crear procesos cuesta tanto como entrenar.">
-  <div class="head"><p class="eyebrow a">Ejecución · campañas</p><h2 class="a" style="--d:100ms">Tres corridas, cinco jobs</h2></div>
-  <table class="tb">
-    <tr class="a" style="--d:200ms"><th style="width:10%">Corrida</th><th style="width:10%">Nodo</th><th style="width:11%">Job</th><th style="width:22%">Qué se mide</th><th style="width:33%">Rejilla</th><th style="width:14%;text-align:right">Duración</th></tr>
-    <tr class="a l" style="--d:300ms"><td>v1</td><td>n003</td><td class="mono">61885</td><td>Escalabilidad</td><td>n = 10 000 · q de 16 a 256</td><td style="text-align:right">93 min</td></tr>
-    <tr class="a l" style="--d:400ms"><td>v1</td><td>n003</td><td class="mono">61886</td><td>Impacto de n</td><td>q = 32 · n de 5000 a 40 000</td><td style="text-align:right">40 min</td></tr>
-    <tr class="a l" style="--d:500ms"><td>v2</td><td>n005</td><td class="mono">62094</td><td>Escalabilidad</td><td>n = 2000 · q de 8 a 256</td><td style="text-align:right">22 min</td></tr>
-    <tr class="a l" style="--d:600ms"><td>v2</td><td>n005</td><td class="mono">62095</td><td>Impacto de n</td><td>q = 32 · n de 500 a 40 000</td><td style="text-align:right">53 min</td></tr>
-    <tr class="a l" style="--d:700ms"><td>v3</td><td>n003</td><td class="mono">63519</td><td>Régimen extremo</td><td>n = 100 · q de 8 a 1024</td><td style="text-align:right">9 min</td></tr>
-  </table>
-  <div class="row" style="margin-top:44px;gap:20px;flex-wrap:wrap">
-    <span class="chip a s" style="--d:900ms">p ∈ {1, 2, 4, 8, 16, 32}, solo q múltiplo de p</span>
-    <span class="chip a s" style="--d:1000ms">6 repeticiones por configuración</span>
-    <span class="chip a s" style="--d:1100ms">≈ 1100 filas de CSV</span>
+<!-- 9 IMPLEMENTACION -->
+<section class="slide dark" data-sec="3 · Resultados" data-notes="Así se ve el algoritmo PRAM en Python. Cada proceso recorre sus semillas, guarda su mejor modelo en su fila y espera en la barrera. Luego el árbol: en cada nivel la mitad de los procesos activos compara con su vecino. 705 son los pesos de un modelo: 20·32 + 32 + 32 + 1.">
+  <div class="head" style="margin-bottom:30px"><p class="eyebrow a">Resultados · desarrollo del código: versión final</p><h2 class="a" style="--d:100ms">Un proceso por fila de memoria compartida</h2></div>
+  <div class="row" style="gap:40px;align-items:flex-start">
+    <div class="code a l" style="--d:200ms;width:1010px">
+      <p class="cap">mlp_paralelo.py · _worker (extracto)</p>
+<pre><span class="k">def</span> _worker(i, p, q, ...):
+    <span class="k">for</span> s <span class="k">in</span> range(i, q, p):           <span class="cm"># Map: s mod p</span>
+        m = entrenar_mlp(s, X_tr, y_tr)
+        a = accuracy(m, X_te, y_te)
+        <span class="k">if</span> a &gt; a_loc: a_loc, s_loc, m_loc = a, s, m
+    A[i], S[i], W[i] = a_loc, s_loc, m_loc
+    <span class="s">barrera.wait()</span>
+    <span class="k">for</span> d <span class="k">in</span> range(ceil(log2(p))):     <span class="cm"># Reduce</span>
+        <span class="k">if</span> i &lt; ceil(p / 2**(d + 1)):
+            j, k = 2*i * 2**d, (2*i + 1) * 2**d
+            <span class="k">if</span> k &lt; p <span class="k">and</span> A[j] &lt; A[k]:
+                A[j], S[j], W[j] = A[k], S[k], W[k]
+        <span class="s">barrera.wait()</span></pre>
+    </div>
+    <div class="col" style="width:614px;gap:20px">
+      <div class="card a" style="--d:400ms"><p class="card-t c">Lectura concurrente</p><p class="small">X_tr, y_tr, X_te, y_te: los hijos los heredan con fork (copy-on-write), sin copiar los datos.</p></div>
+      <div class="card a" style="--d:550ms"><p class="card-t c">Escritura exclusiva</p><p class="small">A[p] exactitudes, S[p] semillas y W[p × 705] pesos en RawArray: una fila por proceso.</p></div>
+      <div class="card a" style="--d:700ms"><p class="card-t am">Sincronización</p><p class="small">Barrier(p) al cerrar el Map y en cada nivel del árbol. BLAS a 1 hilo por proceso.</p></div>
+    </div>
   </div>
-  <p class="small a" style="--d:1200ms;margin-top:28px">Cada corrida se analiza con su propio ajuste: los segundos de nodos distintos no se comparan entre sí.</p>
 </section>
 
-<!-- 13 PIPELINE -->
-<section class="slide dark" data-sec="Ejecución" data-notes="Slurm lanza bench, bench escribe una fila por ejecución, y analisis promedia las repeticiones, calcula speedup, eficiencia y la función de overhead contra el secuencial medido, y ajusta dos modelos por mínimos cuadrados: el que sale de la teoría, sin contención, y el que tiene un factor de contención por cada p. Todo lo que mostramos después sale de estos archivos.">
-  <div class="head"><p class="eyebrow a">Ejecución · análisis</p><h2 class="a" style="--d:100ms">De la ejecución al gráfico</h2></div>
-  <div class="flow">
-    <div class="box a" style="--d:200ms"><p class="bt">sbatch</p><p class="bb">slurm/*.slurm en un nodo con 32 CPUs</p></div><div class="arrow a f" style="--d:300ms">→</div>
-    <div class="box a" style="--d:400ms"><p class="bt">bench.py</p><p class="bb">Arma la rejilla q × p y corre secuencial y paralelo, 6 veces cada uno</p></div><div class="arrow a f" style="--d:500ms">→</div>
-    <div class="box a" style="--d:600ms"><p class="bt">*.csv</p><p class="bb">Una fila por ejecución: tiempos por fase, acc, seed, nivcsw</p></div><div class="arrow a f" style="--d:700ms">→</div>
-    <div class="box a" style="--d:800ms"><p class="bt">analisis.py</p><p class="bb">Descarta la rep 0, promedia 5, calcula S, E y T0 y ajusta los modelos</p></div><div class="arrow a f" style="--d:900ms">→</div>
-    <div class="box a" style="--d:1000ms"><p class="bt">figs/</p><p class="bb">resumen_*.csv, ajuste.txt y 9 figuras por corrida</p></div>
+<!-- 10 INSTRUMENTACION -->
+<section class="slide light" data-sec="3 · Resultados" data-notes="Cada proceso anota cuándo arranca, cuándo termina su Map y cuándo termina el árbol. Con esas marcas sacamos spawn, Map (que incluye esperar en la barrera al más lento) y reducción. Como los procesos arrancan escalonados, spawn y Map se solapan un poco y el residuo sale negativo.">
+  <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Resultados · desarrollo del código: instrumentación</p><h2 class="a" style="--d:100ms">Cada proceso marca tres tiempos</h2></div>
+  <div class="row" style="gap:48px;align-items:flex-start">
+    <div class="col" style="gap:12px;width:1348px">
+      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:128px;font-size:24px">P0</p><div class="gx" style="--d:200ms;width:900px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:160px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
+      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:168px;font-size:24px">P1</p><div class="gx" style="--d:300ms;width:880px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:140px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
+      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:208px;font-size:24px">P2</p><div class="gx" style="--d:400ms;width:940px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:40px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
+      <div class="row" style="align-items:center;gap:0"><p class="mono" style="width:248px;font-size:24px">P3</p><div class="gx" style="--d:500ms;width:860px;height:54px;background:var(--anil);border-radius:8px 0 0 8px"></div><div class="reveal" style="--d:1100ms;width:80px;height:54px;border:3px dashed #A8977A"></div><div class="gx" style="--d:1300ms;width:160px;height:54px;background:var(--grana);border-radius:0 8px 8px 0"></div></div>
+      <div class="reveal" style="--d:1500ms;position:relative;width:1348px;height:90px">
+        <div style="position:absolute;left:128px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:248px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:1188px;top:0;width:3px;height:28px;background:var(--text-l)"></div><div style="position:absolute;left:1345px;top:0;width:3px;height:28px;background:var(--text-l)"></div>
+        <p class="ax" style="left:116px;top:34px;color:var(--text-l)">t0</p><p class="ax" style="left:236px;top:34px;color:var(--text-l)">último arranque</p><p class="ax" style="left:1100px;top:34px;color:var(--text-l)">barrera</p><p class="ax" style="left:1210px;top:62px;color:var(--text-l)">fin Reduce</p>
+      </div>
+    </div>
+    <div class="col a f" style="--d:1500ms;gap:18px;width:260px">
+      <div class="legend"><div class="sw" style="background:var(--anil)"></div><p class="small">Map</p></div>
+      <div class="legend"><div class="sw" style="border:3px dashed #A8977A"></div><p class="small">espera</p></div>
+      <div class="legend"><div class="sw" style="background:var(--grana)"></div><p class="small">Reduce</p></div>
+    </div>
   </div>
-  <div class="col" style="margin-top:56px;gap:20px">
-    <div class="row" style="gap:20px;flex-wrap:wrap">
-      <span class="chip a s" style="--d:1200ms">S = Ts / Tp</span><span class="chip a s" style="--d:1300ms">E = S / p</span><span class="chip a s" style="--d:1350ms">T0 = p·Tp − Ts</span>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 48px;margin-top:20px">
+    <p class="mono a" style="--d:1700ms;font-size:25px"><span class="t">t_spawn</span> = max(enter) − t0</p>
+    <p class="mono a" style="--d:1700ms;font-size:25px"><span class="t">t_map</span> = max(map_end) − min(enter)</p>
+    <p class="mono a" style="--d:1800ms;font-size:25px"><span class="t">t_reduce</span> = max(red_end) − max(map_end)</p>
+    <p class="mono a" style="--d:1800ms;font-size:25px"><span class="t">t_other</span> = t_total − (las tres)</p>
+  </div>
+  <p class="small a" style="--d:1950ms;margin-top:22px;width:1600px">Spawn y Map se solapan (el primer proceso entrena mientras nacen los demás), por eso t_other sale negativo, unos −0.04 s con p = 16. nivcsw cuenta cambios de contexto involuntarios.</p>
+</section>
+
+<!-- 21 AJUSTE SIN CONTENCION -->
+<section class="slide light" data-sec="3 · Resultados" data-notes="Primero ajustamos el modelo que sale de la teoría, sin contención: el Map, un término logarítmico y una constante. El R² es alto, 0.986, pero el término b log p no es el árbol: el ajuste pide 4.5 segundos en p igual a 32 cuando la reducción mide unos 3 milisegundos. Ese término absorbe la sincronización y parte de la contención. Además el error relativo medio es 46 por ciento, y el máximo 324: el R² lo dominan los tiempos grandes. Lo que falta es que la pendiente del trabajo cambie con p.">
+  <div class="head" style="margin-bottom:32px"><p class="eyebrow a">Resultados · ajuste del modelo teórico</p><h2 class="a" style="--d:100ms">Un buen R², pero b no es el árbol</h2></div>
+  <div class="row" style="gap:48px;align-items:flex-start">
+    <div class="col" style="width:880px;gap:18px">
+      <p class="card-f a" style="--d:200ms;color:var(--ink);font-size:27px">Tp = a·⌈q/p⌉·n + b·log₂p + c</p>
+      <table class="tb">
+        <tr class="a" style="--d:300ms"><th style="width:44%">Coeficiente</th><th class="r">v1 · n003</th><th class="r">v2 · n005</th></tr>
+        <tr class="a l" style="--d:380ms"><td class="mono">a</td><td class="r">5.78e-5</td><td class="r">6.64e-5</td></tr>
+        <tr class="a l" style="--d:460ms"><td class="mono">b (por nivel)</td><td class="r ad">0.890 s</td><td class="r ad">0.343 s</td></tr>
+        <tr class="a l" style="--d:540ms"><td class="mono">c</td><td class="r">0.336 s</td><td class="r">0.070 s</td></tr>
+        <tr class="a l" style="--d:620ms"><td>Error relativo máximo</td><td class="r ad">324 %</td><td class="r ad">677 %</td></tr>
+        <tr class="a l" style="--d:700ms"><td class="mono">R²</td><td class="r">0.986</td><td class="r">0.988</td></tr>
+        <tr class="a l hl" style="--d:780ms"><td>Error relativo medio</td><td class="r ad">46 %</td><td class="r ad">85 %</td></tr>
+      </table>
     </div>
-    <div class="row" style="gap:20px;flex-wrap:wrap">
-      <span class="chip a s" style="--d:1400ms">sin contención: Tp ≈ a·⌈q/p⌉·n + b·log₂p + c</span>
-      <span class="chip a s" style="--d:1450ms">con contención: Tp ≈ κ(p)·a·⌈q/p⌉·n + b_p</span>
+    <div class="col" style="width:736px;gap:26px">
+      <div class="card a s" style="--d:950ms"><p class="card-t">El log₂p absorbe la contención</p><p class="small">b·log₂32 ≈ 4.5 s cuando el árbol mide ~3 ms: el término absorbe la sincronización y parte de la degradación por contención, no el árbol.</p></div>
+      <div class="card a s" style="--d:1150ms"><p class="card-t">Residuos estructurados</p><p class="small">El R² lo dominan los tiempos grandes. Tres constantes no pueden capturar que el costo por proceso crece con p en el régimen de contención.</p></div>
+      <div class="row a" style="--d:1350ms;gap:20px;align-items:center"><span class="tag tag-a">Falta</span><p class="body">que la pendiente del trabajo cambie con p.</p></div>
     </div>
-    <p class="small a" style="--d:1500ms">Ts es el secuencial medido con el mismo (n, q). bench.py reutiliza filas de otros CSV del mismo nodo y la misma versión del código.</p>
   </div>
 </section>
 
 <!-- R1 TIEMPOS -->
-<section class="slide light" data-sec="Resultados" data-notes="Tiempo paralelo contra número de procesos, con una curva por cada q, igual que la figura del informe. En escala logarítmica las curvas son rectas paralelas hasta 16 procesos: el tiempo baja como q sobre p. Con 32 procesos sube en todas. Las líneas discontinuas son el modelo con contención, que reproduce los tiempos con 1.3 por ciento de error.">
+<section class="slide light" data-sec="3 · Resultados" data-notes="Tiempo paralelo contra número de procesos, con una curva por cada q, igual que la figura del informe. En escala logarítmica las curvas son rectas paralelas hasta 16 procesos: el tiempo baja como q sobre p. Con 32 procesos sube en todas. Las líneas discontinuas son el modelo con contención, que reproduce los tiempos con 1.3 por ciento de error.">
   <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · v1, n = 10 000 · figura del informe</p><h2 class="a" style="--d:100ms">Tiempo paralelo: cae como 1/p hasta 16</h2></div>
   <div class="row" style="gap:40px;align-items:flex-start">
     <div class="chart" id="ch-tp"></div>
@@ -497,7 +499,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- R2 SPEEDUP -->
-<section class="slide light" data-sec="Resultados" data-notes="El speedup crece con p hasta 16 procesos, donde llega a casi 9, lejos del 16 ideal que marca la diagonal. Con 32 baja a 7.5 en todas las curvas. Y las cinco curvas de q prácticamente coinciden: tener más trabajo no mejora el speedup.">
+<section class="slide light" data-sec="3 · Resultados" data-notes="El speedup crece con p hasta 16 procesos, donde llega a casi 9, lejos del 16 ideal que marca la diagonal. Con 32 baja a 7.5 en todas las curvas. Y las cinco curvas de q prácticamente coinciden: tener más trabajo no mejora el speedup.">
   <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · v1, n = 10 000 · figura del informe</p><h2 class="a" style="--d:100ms">Speedup: máximo ≈ 9 en p = 16, lejos del ideal</h2></div>
   <div class="row" style="gap:40px;align-items:flex-start">
     <div class="chart" id="ch-sp"></div>
@@ -510,7 +512,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- R3 EFICIENCIA -->
-<section class="slide light" data-sec="Resultados" data-notes="Esta es la pista principal. Si el overhead fuera un costo fijo, las curvas con más semillas estarían más arriba. No pasa: con 16 o con 256 semillas la eficiencia en p igual a 16 es 0.56, y en 32 es 0.23. La eficiencia solo depende de cuántos procesos usamos.">
+<section class="slide light" data-sec="3 · Resultados" data-notes="Esta es la pista principal. Si el overhead fuera un costo fijo, las curvas con más semillas estarían más arriba. No pasa: con 16 o con 256 semillas la eficiencia en p igual a 16 es 0.56, y en 32 es 0.23. La eficiencia solo depende de cuántos procesos usamos.">
   <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · v1, n = 10 000 · figura del informe</p><h2 class="a" style="--d:100ms">La eficiencia la fija p, no q</h2></div>
   <div class="row" style="gap:40px;align-items:flex-start">
     <div class="chart" id="ch-ef"></div>
@@ -523,7 +525,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- R4 GFLOPS -->
-<section class="slide light" data-sec="Resultados" data-notes="El throughput en GFLOP por segundo crece con p hasta saturarse cerca de 100 en p igual a 16, y retrocede a unos 85 con 32 procesos. Es la misma historia vista como rendimiento del nodo: el límite práctico aparece antes de los 32 procesos pedidos.">
+<section class="slide light" data-sec="3 · Resultados" data-notes="El throughput en GFLOP por segundo crece con p hasta saturarse cerca de 100 en p igual a 16, y retrocede a unos 85 con 32 procesos. Es la misma historia vista como rendimiento del nodo: el límite práctico aparece antes de los 32 procesos pedidos.">
   <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Resultados · v1, n = 10 000 · figura del informe</p><h2 class="a" style="--d:100ms">El throughput se satura en p = 16</h2></div>
   <div class="row" style="gap:40px;align-items:flex-start">
     <div class="chart" id="ch-gf"></div>
@@ -536,7 +538,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 15b DEBIL E ISOEFICIENCIA -->
-<section class="slide dark" data-sec="Resultados" data-notes="La escalabilidad débil mantiene constante la carga por proceso: aquí, q/p fijo, cada proceso entrena siempre los mismos modelos. Si no hubiera overhead, el tiempo no cambiaría y la eficiencia se quedaría en 1. Pero con los mismos 16 modelos por proceso, el tiempo pasa de 9.3 a 16 segundos entre p = 1 y p = 16, y las tres diagonales dan lo mismo: la eficiencia solo depende de p. La isoeficiencia compara curvas a p fijo: según el modelo, con qnC del orden de p log p, más semillas deberían subir la eficiencia, pero en p = 16 pasar de 16 a 256 semillas la deja en 0.56. El porqué lo vemos al final, con el factor de contención.">
+<section class="slide dark" data-sec="3 · Resultados" data-notes="La escalabilidad débil mantiene constante la carga por proceso: aquí, q/p fijo, cada proceso entrena siempre los mismos modelos. Si no hubiera overhead, el tiempo no cambiaría y la eficiencia se quedaría en 1. Pero con los mismos 16 modelos por proceso, el tiempo pasa de 9.3 a 16 segundos entre p = 1 y p = 16, y las tres diagonales dan lo mismo: la eficiencia solo depende de p. La isoeficiencia compara curvas a p fijo: según el modelo, con qnC del orden de p log p, más semillas deberían subir la eficiencia, pero en p = 16 pasar de 16 a 256 semillas la deja en 0.56. El porqué lo vemos al final, con el factor de contención.">
   <div class="head" style="margin-bottom:34px"><p class="eyebrow a">Resultados · escalabilidad débil e isoeficiencia</p><h2 class="a" style="--d:100ms">Ninguna de las dos se cumple: E la fija p</h2></div>
   <div class="row" style="gap:64px;align-items:flex-start">
     <div class="col" style="width:960px;gap:22px">
@@ -559,8 +561,8 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 17 HALLAZGO -->
-<section class="slide amber" data-sec="El hallazgo" data-notes="Esta es la idea central. El árbol, que la teoría señalaba como el costo extra, tarda milisegundos. Lo que se come la eficiencia es que entrenar un mismo modelo tarda casi el doble cuando hay 16 procesos al lado. Como una cocina: con más cocineros cada uno trabaja más lento, porque comparten horno y espacio.">
-  <p class="eyebrow a" style="margin-top:40px">El hallazgo</p>
+<section class="slide amber" data-sec="3 · Resultados" data-notes="Esta es la idea central. El árbol, que la teoría señalaba como el costo extra, tarda milisegundos. Lo que se come la eficiencia es que entrenar un mismo modelo tarda casi el doble cuando hay 16 procesos al lado. Como una cocina: con más cocineros cada uno trabaja más lento, porque comparten horno y espacio.">
+  <p class="eyebrow a" style="margin-top:40px">Resultados · escalabilidad: el cuello de botella</p>
   <h1 class="a" style="--d:150ms;font-size:100px;width:1560px">El cuello de botella no es la reducción: cada proceso se vuelve más lento.</h1>
   <div class="row" style="margin-top:72px;gap:110px">
     <div class="a s" style="--d:500ms"><p class="num-l">&lt; 4 ms</p><p class="body">reducción en árbol, incluso con p = 32</p></div>
@@ -569,7 +571,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 18 DESGLOSE -->
-<section class="slide dark" data-sec="Resultados" data-notes="Las marcas de tiempo lo confirman. Casi todo el tiempo es entrenar; el árbol y la creación de procesos son despreciables. Pero si dividimos el Map entre los modelos de cada proceso, un modelo que tarda 0.58 s solo tarda 1.02 con 16 vecinos y 2.41 con 32. Y no es que el sistema operativo los saque de la CPU: son unos 2 desalojos por proceso y por segundo, cada uno de milisegundos. La pérdida ocurre mientras el proceso está ejecutando.">
+<section class="slide dark" data-sec="3 · Resultados" data-notes="Las marcas de tiempo lo confirman. Casi todo el tiempo es entrenar; el árbol y la creación de procesos son despreciables. Pero si dividimos el Map entre los modelos de cada proceso, un modelo que tarda 0.58 s solo tarda 1.02 con 16 vecinos y 2.41 con 32. Y no es que el sistema operativo los saque de la CPU: son unos 2 desalojos por proceso y por segundo, cada uno de milisegundos. La pérdida ocurre mientras el proceso está ejecutando.">
   <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Resultados · desglose por fase</p><h2 class="a" style="--d:100ms">El tiempo está en el Map, y cada modelo tarda más</h2></div>
   <div class="row" style="gap:72px;align-items:flex-start">
     <div class="col" style="width:440px;gap:24px">
@@ -585,22 +587,8 @@ python3 bench.py --ns 2000 \
   </div>
 </section>
 
-<!-- 22 CORRECTITUD -->
-<section class="slide dark" data-sec="Correctitud" data-notes="La exactitud del mejor modelo no cambia con p, porque cada semilla se entrena una vez y el árbol siempre deja el máximo en la posición cero. El único caso distinto es un empate: con 500 datos dos semillas dan la misma exactitud, y cuál gana depende del orden de comparación.">
-  <div class="head"><p class="eyebrow a">Correctitud</p><h2 class="a" style="--d:100ms">Paralelizar no cambia el modelo elegido</h2></div>
-  <div class="row" style="gap:32px">
-    <div class="card a s" style="--d:200ms;width:533px"><p class="num c" data-count="0.860" data-dec="3">0.860</p><p class="small">exactitud de M* en v1, entre 0.8595 y 0.8605 para todo p</p></div>
-    <div class="card a s" style="--d:350ms;width:533px"><p class="num c" data-count="0.91" data-dec="2">0.91</p><p class="small">exactitud de M* en v2, entre 0.905 y 0.91 para todo p</p></div>
-    <div class="card a s" style="--d:500ms;width:533px"><p class="num c">s mod p</p><p class="small">cada semilla se entrena exactamente una vez: la unión de los Map cubre las q semillas</p></div>
-  </div>
-  <div class="col" style="margin-top:48px;gap:24px">
-    <div class="row a" style="--d:700ms;gap:20px;align-items:center"><span class="tag tag-c">Árbol</span><p class="body">Tras log₂ p niveles, la posición 0 guarda el máximo de las p exactitudes locales.</p></div>
-    <div class="row a" style="--d:850ms;gap:20px;align-items:center"><span class="tag tag-a">Empates</span><p class="body">Con n = 500, las semillas 1 y 8 empatan: según p gana una u otra, con la misma exactitud.</p></div>
-  </div>
-</section>
-
 <!-- 6 PREDICCION -->
-<section class="slide light" data-sec="Overhead" data-notes="Esta es la predicción que vamos a poner a prueba. T cero es el tiempo que los p procesos gastan en conjunto por encima del secuencial. Si reemplazamos nuestro modelo, el Map no deja nada: p veces q sobre p por nC es exactamente el trabajo secuencial. Solo queda la reducción, c_red por p log p, que no depende del trabajo. Entonces, con más semillas o más muestras, T0 sobre W debería bajar y la eficiencia acercarse a 1.">
+<section class="slide light" data-sec="3 · Overhead y κ(p)" data-notes="Esta es la predicción que vamos a poner a prueba. T cero es el tiempo que los p procesos gastan en conjunto por encima del secuencial. Si reemplazamos nuestro modelo, el Map no deja nada: p veces q sobre p por nC es exactamente el trabajo secuencial. Solo queda la reducción, c_red por p log p, que no depende del trabajo. Entonces, con más semillas o más muestras, T0 sobre W debería bajar y la eficiencia acercarse a 1.">
   <div class="head" style="margin-bottom:28px"><p class="eyebrow a">Replanteamiento del overhead · la predicción</p><h2 class="a" style="--d:100ms">El overhead debería ser un costo fijo</h2></div>
   <p class="num-l t a s" style="--d:250ms">T0 = p·Tp − W</p>
   <p class="body a" style="--d:400ms;margin-top:16px;width:1400px">Función de overhead: el tiempo que los p procesos gastan en conjunto por encima del trabajo secuencial W = Ts. Con ella, E = 1 / (1 + T0/W).</p>
@@ -613,7 +601,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 19 OVERHEAD -->
-<section class="slide light" data-sec="Overhead" data-notes="Contrastamos directamente con la función de overhead. Cada color es un p y cada punto una configuración de q y n. Si el overhead fuera fijo, cada color sería una línea horizontal. Pero los puntos suben paralelos a la diagonal: si el trabajo se duplica, el overhead se duplica. La pendiente alfa es kappa menos 1, cuánto más lento va cada modelo con p procesos. Como E es 1 sobre 1 más T0 sobre W, la eficiencia queda fijada por p.">
+<section class="slide light" data-sec="3 · Overhead y κ(p)" data-notes="Contrastamos directamente con la función de overhead. Cada color es un p y cada punto una configuración de q y n. Si el overhead fuera fijo, cada color sería una línea horizontal. Pero los puntos suben paralelos a la diagonal: si el trabajo se duplica, el overhead se duplica. La pendiente alfa es kappa menos 1, cuánto más lento va cada modelo con p procesos. Como E es 1 sobre 1 más T0 sobre W, la eficiencia queda fijada por p.">
   <div class="head" style="margin-bottom:14px"><p class="eyebrow a">Replanteamiento del overhead · contraste · figura del informe</p><h2 class="a" style="--d:100ms">El overhead medido crece con el trabajo</h2></div>
   <div class="row" style="gap:40px;align-items:flex-start">
     <div class="chart" id="ch-ov"></div>
@@ -625,7 +613,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 19b PARTE FIJA -->
-<section class="slide light" data-sec="Overhead" data-notes="La función de overhead tiene además una parte fija: crear los procesos y sincronizarlos. Con n grande no se nota, pero aparece cuando achicamos el trabajo. Arriba, con 32 semillas: con n chico T0/W es alto y baja al crecer n hasta unos 5000 datos; desde ahí se queda en el valor de la contención. Abajo, el régimen extremo con n = 100: ajustamos T0 = α·W + β, y el intercepto β, que es la parte fija, coincide con lo que medimos de crear procesos: 3.85 contra 3.69 segundos en p = 32. Así cada término de la fórmula del overhead tiene respaldo en los datos.">
+<section class="slide light" data-sec="3 · Overhead y κ(p)" data-notes="La función de overhead tiene además una parte fija: crear los procesos y sincronizarlos. Con n grande no se nota, pero aparece cuando achicamos el trabajo. Arriba, con 32 semillas: con n chico T0/W es alto y baja al crecer n hasta unos 5000 datos; desde ahí se queda en el valor de la contención. Abajo, el régimen extremo con n = 100: ajustamos T0 = α·W + β, y el intercepto β, que es la parte fija, coincide con lo que medimos de crear procesos: 3.85 contra 3.69 segundos en p = 32. Así cada término de la fórmula del overhead tiene respaldo en los datos.">
   <div class="head" style="margin-bottom:30px"><p class="eyebrow a">Replanteamiento del overhead · la parte fija</p><h2 class="a" style="--d:100ms">También hay un costo fijo, y sí se amortiza</h2></div>
   <p class="card-f a" style="--d:200ms;color:var(--anil)">T0 = (κ(p)−1)·W + T0_fijo &nbsp;·&nbsp; T0_fijo = preparar + crear procesos + árbol</p>
   <table class="tb" style="margin-top:18px">
@@ -645,32 +633,8 @@ python3 bench.py --ns 2000 \
   </div>
 </section>
 
-<!-- 21 AJUSTE SIN CONTENCION -->
-<section class="slide light" data-sec="Overhead" data-notes="Primero ajustamos el modelo que sale de la teoría, sin contención: el Map, un término logarítmico y una constante. El R² es alto, 0.986, pero el término b log p no es el árbol: el ajuste pide 4.5 segundos en p igual a 32 cuando la reducción mide unos 3 milisegundos. Ese término absorbe la sincronización y parte de la contención. Además el error relativo medio es 46 por ciento, y el máximo 324: el R² lo dominan los tiempos grandes. Lo que falta es que la pendiente del trabajo cambie con p.">
-  <div class="head" style="margin-bottom:32px"><p class="eyebrow a">Replanteamiento del overhead · modelo sin contención</p><h2 class="a" style="--d:100ms">Un buen R², pero b no es el árbol</h2></div>
-  <div class="row" style="gap:48px;align-items:flex-start">
-    <div class="col" style="width:880px;gap:18px">
-      <p class="card-f a" style="--d:200ms;color:var(--ink);font-size:27px">Tp = a·⌈q/p⌉·n + b·log₂p + c</p>
-      <table class="tb">
-        <tr class="a" style="--d:300ms"><th style="width:44%">Coeficiente</th><th class="r">v1 · n003</th><th class="r">v2 · n005</th></tr>
-        <tr class="a l" style="--d:380ms"><td class="mono">a</td><td class="r">5.78e-5</td><td class="r">6.64e-5</td></tr>
-        <tr class="a l" style="--d:460ms"><td class="mono">b (por nivel)</td><td class="r ad">0.890 s</td><td class="r ad">0.343 s</td></tr>
-        <tr class="a l" style="--d:540ms"><td class="mono">c</td><td class="r">0.336 s</td><td class="r">0.070 s</td></tr>
-        <tr class="a l" style="--d:620ms"><td>Error relativo máximo</td><td class="r ad">324 %</td><td class="r ad">677 %</td></tr>
-        <tr class="a l" style="--d:700ms"><td class="mono">R²</td><td class="r">0.986</td><td class="r">0.988</td></tr>
-        <tr class="a l hl" style="--d:780ms"><td>Error relativo medio</td><td class="r ad">46 %</td><td class="r ad">85 %</td></tr>
-      </table>
-    </div>
-    <div class="col" style="width:736px;gap:26px">
-      <div class="card a s" style="--d:950ms"><p class="card-t">El log₂p absorbe la contención</p><p class="small">b·log₂32 ≈ 4.5 s cuando el árbol mide ~3 ms: el término absorbe la sincronización y parte de la degradación por contención, no el árbol.</p></div>
-      <div class="card a s" style="--d:1150ms"><p class="card-t">Residuos estructurados</p><p class="small">El R² lo dominan los tiempos grandes. Tres constantes no pueden capturar que el costo por proceso crece con p en el régimen de contención.</p></div>
-      <div class="row a" style="--d:1350ms;gap:20px;align-items:center"><span class="tag tag-a">Falta</span><p class="body">que la pendiente del trabajo cambie con p.</p></div>
-    </div>
-  </div>
-</section>
-
 <!-- 21b MODELO DEFINITIVO -->
-<section class="slide dark" data-sec="Overhead" data-notes="El modelo definitivo pone la contención donde ocurre: multiplicando el trabajo de cada proceso. a es el costo por muestra con un solo proceso, κ(p) cuánto más lento va cada modelo con p procesos activos, y b_p la parte fija. Para cada p se ajusta una recta y κ es la pendiente dividida por la de p = 1. Los dos nodos dan casi el mismo κ: crece suave hasta 1.8 en p = 16 y salta a más de 4 en p = 32 por el hyperthreading. El error relativo medio baja de 46 a 1.3 por ciento. Hasta p = 16 la forma es suave: se ajusta con 1 + γ·log₂p, con γ = 0.127, es decir, cada duplicación de procesos hace cada entrenamiento un 13 por ciento más lento.">
+<section class="slide dark" data-sec="3 · Overhead y κ(p)" data-notes="El modelo definitivo pone la contención donde ocurre: multiplicando el trabajo de cada proceso. a es el costo por muestra con un solo proceso, κ(p) cuánto más lento va cada modelo con p procesos activos, y b_p la parte fija. Para cada p se ajusta una recta y κ es la pendiente dividida por la de p = 1. Los dos nodos dan casi el mismo κ: crece suave hasta 1.8 en p = 16 y salta a más de 4 en p = 32 por el hyperthreading. El error relativo medio baja de 46 a 1.3 por ciento. Hasta p = 16 la forma es suave: se ajusta con 1 + γ·log₂p, con γ = 0.127, es decir, cada duplicación de procesos hace cada entrenamiento un 13 por ciento más lento.">
   <div class="head" style="margin-bottom:30px"><p class="eyebrow a">Replanteamiento del overhead · factor de contención κ(p)</p><h2 class="a" style="--d:100ms">Modelo definitivo: la contención multiplica el Map</h2></div>
   <p class="card-f a s" style="--d:200ms;font-size:36px">Tp = κ(p) · a · ⌈q/p⌉ · n + b_p &nbsp;&nbsp;<span class="small" style="font-family:var(--sans)">κ(1) = 1</span></p>
   <p class="small a" style="--d:260ms;margin-top:6px"><span class="c">a</span> = costo por muestra de un modelo con 1 proceso (5.6·10⁻⁵ s en v1: a·n ≈ 0.56 s por modelo) · <span class="c">⌈q/p⌉</span> = modelos por proceso · <span class="c">b_p</span> = parte fija de cada p</p>
@@ -692,7 +656,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 21c VERIFICACION -->
-<section class="slide light" data-sec="Overhead" data-notes="La prueba final es la eficiencia. Calculamos la eficiencia que predice cada modelo y la comparamos con la medida. El modelo sin contención se equivoca con un signo que depende de q: con pocas semillas es pesimista, porque su término log p pesa demasiado frente a un Map corto; con muchas es optimista, porque no ve la contención en un Map largo. Ya en p = 8 se equivoca en 0.24. El modelo con κ acierta en las cuatro, con error medio de 0.008. Conclusión: el modelo PRAM describe bien el costo del Map, qnC/p; lo único que le falta es el factor κ(p).">
+<section class="slide light" data-sec="3 · Overhead y κ(p)" data-notes="La prueba final es la eficiencia. Calculamos la eficiencia que predice cada modelo y la comparamos con la medida. El modelo sin contención se equivoca con un signo que depende de q: con pocas semillas es pesimista, porque su término log p pesa demasiado frente a un Map corto; con muchas es optimista, porque no ve la contención en un Map largo. Ya en p = 8 se equivoca en 0.24. El modelo con κ acierta en las cuatro, con error medio de 0.008. Conclusión: el modelo PRAM describe bien el costo del Map, qnC/p; lo único que le falta es el factor κ(p).">
   <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Replanteamiento del overhead · verificación</p><h2 class="a" style="--d:100ms">Solo el modelo con κ reproduce la eficiencia</h2></div>
   <div class="row" style="gap:56px;align-items:flex-start">
     <table class="tb" style="width:1000px">
@@ -711,7 +675,7 @@ python3 bench.py --ns 2000 \
 </section>
 
 <!-- 20 CAUSAS -->
-<section class="slide dark" data-sec="Overhead" data-notes="PRAM supone procesadores idénticos que no se estorban. Un nodo real no es así: con más núcleos activos baja la frecuencia; los procesos comparten caché y memoria; y con 32 procesos dos viven en el mismo núcleo. Todo eso hace que cada modelo tarde más, en proporción al trabajo: la firma que vimos en T0.">
+<section class="slide dark" data-sec="3 · Overhead y κ(p)" data-notes="PRAM supone procesadores idénticos que no se estorban. Un nodo real no es así: con más núcleos activos baja la frecuencia; los procesos comparten caché y memoria; y con 32 procesos dos viven en el mismo núcleo. Todo eso hace que cada modelo tarde más, en proporción al trabajo: la firma que vimos en T0.">
   <div class="head" style="margin-bottom:36px"><p class="eyebrow a">Replanteamiento del overhead · por qué crece κ(p)</p><h2 class="a" style="--d:100ms">Lo que el modelo PRAM no ve</h2></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
     <div class="card a s" style="--d:200ms"><p class="card-t am">Frecuencia variable</p><p class="small">Con más núcleos activos, el turbo baja los MHz. En el job 57156 el tiempo siguió a la frecuencia: hasta 1.6× de diferencia.</p></div>
@@ -722,9 +686,23 @@ python3 bench.py --ns 2000 \
   <div class="row a" style="--d:900ms;margin-top:34px;gap:20px;align-items:center"><span class="tag tag-c">Descartados</span><p class="small">NUMA, hilos de BLAS (fijados a 1) y desalojo por el planificador.</p></div>
 </section>
 
+<!-- 22 CORRECTITUD -->
+<section class="slide dark" data-sec="3 · Resultados" data-notes="La exactitud del mejor modelo no cambia con p, porque cada semilla se entrena una vez y el árbol siempre deja el máximo en la posición cero. El único caso distinto es un empate: con 500 datos dos semillas dan la misma exactitud, y cuál gana depende del orden de comparación.">
+  <div class="head"><p class="eyebrow a">Resultados · calidad del modelo y corrección</p><h2 class="a" style="--d:100ms">Paralelizar no cambia el modelo elegido</h2></div>
+  <div class="row" style="gap:32px">
+    <div class="card a s" style="--d:200ms;width:533px"><p class="num c" data-count="0.860" data-dec="3">0.860</p><p class="small">exactitud de M* en v1, entre 0.8595 y 0.8605 para todo p</p></div>
+    <div class="card a s" style="--d:350ms;width:533px"><p class="num c" data-count="0.91" data-dec="2">0.91</p><p class="small">exactitud de M* en v2, entre 0.905 y 0.91 para todo p</p></div>
+    <div class="card a s" style="--d:500ms;width:533px"><p class="num c">s mod p</p><p class="small">cada semilla se entrena exactamente una vez: la unión de los Map cubre las q semillas</p></div>
+  </div>
+  <div class="col" style="margin-top:48px;gap:24px">
+    <div class="row a" style="--d:700ms;gap:20px;align-items:center"><span class="tag tag-c">Árbol</span><p class="body">Tras log₂ p niveles, la posición 0 guarda el máximo de las p exactitudes locales.</p></div>
+    <div class="row a" style="--d:850ms;gap:20px;align-items:center"><span class="tag tag-a">Empates</span><p class="body">Con n = 500, las semillas 1 y 8 empatan: según p gana una u otra, con la misma exactitud.</p></div>
+  </div>
+</section>
+
 <!-- 23 CONCLUSIONES -->
-<section class="slide dark" data-sec="Cierre" data-notes="El diseño paralelo funciona y da el mismo resultado. Llegamos a 9 veces más rápido con 16 procesos. Lo que lo limita no es el algoritmo: la reducción cuesta milisegundos. Es que el hardware compartido hace a cada proceso más lento, en proporción al trabajo: el overhead es (κ − 1) por W, y eso fija la eficiencia en a lo más 1/κ(p). Por eso no hay escalabilidad débil ni función de isoeficiencia: ni más semillas ni más datos recuperan la eficiencia. Para una siguiente versión: nodo exclusivo, registrar la frecuencia y fijar procesos a núcleos, para separar cuánto de κ es hyperthreading, turbo o memoria.">
-  <div class="head" style="margin-bottom:40px"><p class="eyebrow a">Cierre</p><h2 class="a" style="--d:100ms">Conclusiones y próximos pasos</h2></div>
+<section class="slide dark" data-sec="Conclusión" data-notes="El diseño paralelo funciona y da el mismo resultado. Llegamos a 9 veces más rápido con 16 procesos. Lo que lo limita no es el algoritmo: la reducción cuesta milisegundos. Es que el hardware compartido hace a cada proceso más lento, en proporción al trabajo: el overhead es (κ − 1) por W, y eso fija la eficiencia en a lo más 1/κ(p). Por eso no hay escalabilidad débil ni función de isoeficiencia: ni más semillas ni más datos recuperan la eficiencia. Para una siguiente versión: nodo exclusivo, registrar la frecuencia y fijar procesos a núcleos, para separar cuánto de κ es hyperthreading, turbo o memoria.">
+  <div class="head" style="margin-bottom:40px"><p class="eyebrow a">Conclusión del análisis</p><h2 class="a" style="--d:100ms">Conclusiones y próximos pasos</h2></div>
   <div class="row" style="gap:64px;align-items:flex-start">
     <div class="col" style="width:880px;gap:26px">
       <div class="row a l" style="--d:200ms;gap:20px;align-items:baseline"><p class="mono c" style="font-size:30px">01</p><p class="body">El algoritmo PRAM se implementó completo: Map por s mod p y Reduce en árbol con barreras.</p></div>
