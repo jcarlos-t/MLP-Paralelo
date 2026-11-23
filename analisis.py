@@ -75,17 +75,17 @@ def _guardar(fig, out, nombre):
     plt.close(fig)
 
 
-def _linea_teorica(ax, df, rectas, **kw):
-    """Curva teórica (modelo con kappa) evaluada en los (n,q,p) medidos de df."""
+def _linea_teorica(ax, df, coef, **kw):
+    """Curva teórica evaluada en los (n,q,p) medidos de df (una por grupo)."""
     if not any(t.get_label() == "$T_p$ teórico" for t in ax.lines):
         kw.setdefault("label", "$T_p$ teórico")
     for _, g in df.groupby("q"):
         g = g.sort_values("p")
-        ys = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(g.n, g.q, g.p)]
+        ys = [teoria(coef, n, q, p) for n, q, p in zip(g.n, g.q, g.p)]
         ax.plot(g.p, ys, "--", alpha=0.7, **kw)
 
 
-def graficas_escalabilidad(E, rectas, out):
+def graficas_escalabilidad(E, coef, out):
     """Caso 1: n fija, barrido q x p. Una figura por metrica, curva por q."""
     n_ref = E.n.max()
     E = E[E.n == n_ref].copy()
@@ -95,7 +95,7 @@ def graficas_escalabilidad(E, rectas, out):
     for q in qs:
         g = E[E.q == q].sort_values("p")
         l, = ax.plot(g.p, g.t_total, "o-", label=f"$q={q}$")
-        _linea_teorica(ax, g, rectas, color=l.get_color())
+        _linea_teorica(ax, g, coef, color=l.get_color())
     ax.set_xscale("log", base=2); ax.set_yscale("log")
     ax.set_xlabel("$p$ — procesos"); ax.set_ylabel("$T_p$ [s]")
     ax.set_title(f"$T_p$ vs $p$ ($n={n_ref}$)")
@@ -149,7 +149,8 @@ def graficas_escalabilidad(E, rectas, out):
         g = E[(E.q == q) & (E.version != "sequential")].sort_values("p")
         if not len(g):
             continue
-        partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce), ("otro", g.t_other)]
+        partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce),
+                  ("otro", g.t_other.clip(lower=0))]
         bottom = np.zeros(len(g))
         fig, ax = plt.subplots(figsize=(7, 4.5))
         for nombre, vals in partes:
@@ -180,11 +181,24 @@ def grafica_overhead(df, out):
     _guardar(fig, out, "overhead_vs_trabajo.png")
 
 
-def graficas_impacto_n(A, out):
+def graficas_impacto_n(A, coef, out):
     """Caso 2: q fijo, n y p variables. Curva por n; desglose una figura por n."""
     q_main = sorted(A.q.unique())[0]
     A = A[A.q == q_main].copy()
     ns = sorted(A.n.unique())
+
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+    for i, n in enumerate(ns):
+        g = A[A.n == n].sort_values("p")
+        l, = ax.plot(g.p, g.t_total, "o-", label=f"$n={n}$")
+        kw = {"label": "$T_p$ teórico"} if i == 0 else {}
+        ax.plot(g.p, [teoria(coef, nn, qq, pp) for nn, qq, pp in zip(g.n, g.q, g.p)],
+                "--", color=l.get_color(), alpha=0.7, **kw)
+    ax.set_xscale("log", base=2); ax.set_yscale("log")
+    ax.set_xlabel("$p$ — procesos"); ax.set_ylabel("$T_p$ [s]")
+    ax.set_title(f"$T_p$ vs $p$ ($q={q_main}$)")
+    ax.legend(fontsize=8); ax.grid(alpha=0.3)
+    _guardar(fig, out, "impacto_n_tiempos.png")
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     for n in ns:
@@ -210,7 +224,8 @@ def graficas_impacto_n(A, out):
         g = A[(A.n == n) & (A.version != "sequential")].sort_values("p")
         if not len(g):
             continue
-        partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce), ("otro", g.t_other)]
+        partes = [("spawn", g.t_spawn), ("map", g.t_map), ("reduce", g.t_reduce),
+                  ("otro", g.t_other.clip(lower=0))]
         bottom = np.zeros(len(g))
         fig, ax = plt.subplots(figsize=(7, 4.5))
         for nombre, vals in partes:
@@ -273,14 +288,14 @@ def main():
         E = E.copy()
         E["T_teo"] = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(E.n, E.q, E.p)]
         E.to_csv(os.path.join(args.out, "resumen_escalabilidad.csv"), index=False)
-        graficas_escalabilidad(E, rectas, args.out)
+        graficas_escalabilidad(E, coef, args.out)
     if A is not None:
         rA = r2(A, coef)
         lineas.append("R^2 impacto de n = " + f"{rA:.5f}")
         A = A.copy()
         A["T_teo"] = [teoria_kappa(rectas, n, q, p) for n, q, p in zip(A.n, A.q, A.p)]
         A.to_csv(os.path.join(args.out, "resumen_impacto_n.csv"), index=False)
-        graficas_impacto_n(A, args.out)
+        graficas_impacto_n(A, coef, args.out)
     texto = "\n".join(lineas) + "\n"
     with open(os.path.join(args.out, "ajuste.txt"), "w") as f:
         f.write(texto)
