@@ -97,7 +97,7 @@ El trabajo se centra en entrenar varios perceptrones multicapa (MLP) con distint
 
 La solución propuesta distribuye las semillas entre procesos: cada uno entrena los modelos que tiene asignados y conserva su mejor candidato local. Al concluir, una reducción en forma de árbol compara esos candidatos hasta seleccionar el de mayor exactitud global. Esta estrategia de paralelismo por tareas aprovecha la independencia de los entrenamientos y deja la coordinación para la selección final. El algoritmo se describe también mediante el modelo PRAM, que permite razonar sobre el trabajo paralelo antes de considerar los recursos concretos de la implementación.
 
-La implementación adopta memoria compartida porque todos los procesos leen los mismos datos de entrenamiento y prueba, mientras que cada uno escribe sus resultados en posiciones separadas. Así se evita transferir repetidamente el conjunto de datos entre procesos por una red, y se sigue el esquema CREW: lectura concurrente y escritura exclusiva. Además, ejecutar en un solo nodo permite estudiar la escalabilidad dentro de una máquina y observar cómo el uso de sus núcleos, caché y ancho de banda de memoria afecta el rendimiento. Al aumentar los procesos, este análisis permite identificar cuándo añadir recursos deja de reducir el tiempo y otros factores empieza a limitar la ejecución.
+La implementación adopta memoria compartida porque todos los procesos leen los mismos datos de entrenamiento y prueba, mientras que cada uno escribe sus resultados en posiciones separadas. Así se evita transferir repetidamente el conjunto de datos entre procesos por una red, y se sigue el esquema CREW: lectura concurrente y escritura exclusiva. Además, ejecutar en un solo nodo permite estudiar la escalabilidad dentro de una máquina y observar cómo el uso de sus núcleos, caché y ancho de banda de memoria afecta el rendimiento. Al aumentar los procesos, este análisis permite identificar cuándo añadir recursos deja de reducir el tiempo y otros factores empiezan a limitar la ejecución.
 
 El informe evalúa el tiempo de ejecución para distintos números de procesos y tamaños de muestra, manteniendo fijo el número de épocas, tal como requiere el proyecto. Además, contrasta el comportamiento medido con un modelo teórico y analiza la aceleración y la eficiencia para estudiar la escalabilidad de la solución. Las ecuaciones y el análisis detallado de costos se presentan en las secciones siguientes. El código fuente del proyecto (versiones de desarrollo, versión final e instrumentación) está disponible en \url{https://github.com/jcarlos-t/MLP-Paralelo.git}.
 
@@ -142,7 +142,7 @@ En el PRAM ideal, se considera un procesador por semilla. El algoritmo se organi
 \begin{itemize}
     \item \textbf{Preparación secuencial:} Se divide el conjunto de datos en entrenamiento y prueba, y se deja disponible para la lectura concurrente.
     \item \textbf{Map:} Cada uno de los procesadores entrena el MLP correspondiente a una semilla y calcula su exactitud. Los entrenamientos son independientes, por lo que esta fase es paralelismo de tareas, también descrito como \textit{embarrassingly parallel} \cite{farias2022parallelmlps}.
-    \item \textbf{Reduce:} Un árbol binario compara los $q$ modelos y sus exactitudes. Para $q$ potencia de dos, la reducción requiere $\log_2 q$ niveles y deja el mejor resultado en una posición común, como lo desarrollado en el curso \cite{u2.2}.
+    \item \textbf{Reduce:} Un árbol binario compara los $q$ modelos y sus exactitudes. Para $q$ potencia de dos, la reducción requiere $\log_2 q$ niveles y deja el mejor resultado en una posición común, según lo desarrollado en el curso \cite{u2.2}.
 \end{itemize}
 
 El pseudocódigo formalizado del algoritmo PRAM se define como:
@@ -223,7 +223,9 @@ Para complementar el algoritmo principal, se detallan a continuación las subrut
 Las operaciones dominantes en el bucle principal son las multiplicaciones matriciales del \textit{forward pass} ($X_{train} \cdot W^{(1)}$) y \textit{backpropagation} ($X_{train}^T \cdot dZ1$). Dado que involucran dimensiones $(n \times d) \times (d \times h)$ y $(d \times n) \times (n \times h)$ respectivamente, ambas requieren $O(n \cdot d \cdot h)$ operaciones elementales. Las transformaciones intermedias (activaciones, derivadas, sesgos y actualización de pesos) poseen un costo de orden inferior $O(n \cdot h + d \cdot h)$.
     
 Al repetir secuencialmente este proceso durante $T_{max} = E$ épocas sobre una inicialización previa de costo marginal $O(d \cdot h)$, la complejidad temporal total de la subrutina queda expresada como:
-$$T_{\text{Entrenar\_MLP}} = O(E \cdot n \cdot d \cdot h)$$
+\[
+T_{\text{Entrenar\_MLP}} = O(E \cdot n \cdot d \cdot h)
+\]
 
 \begin{algorithm}[H]
 \caption{Evaluación del modelo (accuracy)}
@@ -245,7 +247,9 @@ $$T_{\text{Entrenar\_MLP}} = O(E \cdot n \cdot d \cdot h)$$
 \end{algorithm}
 
 La evaluación del modelo ejecuta únicamente la fase de inferencia sobre el conjunto de prueba de $n_{test}$ muestras. La carga computacional está dominada por la proyección inicial $X_{test} \cdot W^{(1)}$ de dimensión $(n_{test} \times d) \times (d \times h)$, requiriendo $O(n_{test} \cdot d \cdot h)$ operaciones. Como el cálculo subsiguiente de la capa de salida y la umbralización vectorial para determinar aciertos toman tiempos de orden menor ($O(n_{test} \cdot h)$ y $O(n_{test})$), la complejidad total es:
-$$T_{\text{accuracy}} = O(n_{test} \cdot d \cdot h)$$
+\[
+T_{\text{accuracy}} = O(n_{test} \cdot d \cdot h)
+\]
 
 
 \subsection{Análisis de Métricas y Complejidad Teórica}
@@ -486,9 +490,7 @@ Con exactamente la misma carga por proceso (16 modelos por proceso en la diagona
 
 \textbf{El cuello de botella no es la reducción.} El desglose por fases muestra que el tiempo de la reducción permanece en el orden de milisegundos ($< 4$ ms incluso en $p = 32$) y la creación de procesos en $\sim$0.2 s como máximo. El componente que crece es la propia fase de mapeo: el tiempo por modelo se infla progresivamente con $p$. Para $q = 32$, $n = 10000$ (costo secuencial por modelo $\approx 0.575$ s), el tiempo efectivo por modelo en cada proceso pasa de $0.58$ s en $p = 1$ a $0.64$ s ($p=2$), $0.78$ s ($p=4$), $0.88$ s ($p=8$), $1.02$ s ($p=16$) y $2.41$ s ($p=32$): una degradación de hasta $4.2\times$. El contador de cambios de contexto involuntarios (\texttt{nivcsw}, suma sobre los $p$ procesos y máximo entre repeticiones) muestra que esta degradación no se debe a que el sistema operativo desaloje a los procesos: aunque el total crece con $p$ (hasta $\sim$1300 en $p = 32$ con $q = 256$), equivale a apenas $\sim$2 desalojos por proceso y por segundo en ese caso (unos 42 por proceso en 19~s de ejecución). Para explicar los $\sim$15~s adicionales por proceso que implica la contención, cada desalojo tendría que costar $\sim$0.35~s, cuando su costo típico es de milisegundos. La pérdida ocurre, por tanto, mientras los procesos se están ejecutando: en las unidades de ejecución compartidas, la frecuencia de reloj o el acceso a memoria.
 
-\textbf{Cómo se miden las fases del paralelo.} El código registra marcas de tiempo con \texttt{perf\_counter} en tres puntos por proceso trabajador: al entrar a la función (antes del bucle de entrenamiento), tras la barrera que cierra la fase de mapeo y tras completar el árbol de reducción. A partir de ellas se construyen los componentes de las figuras de barras: \texttt{t\_total} es el tiempo de pared desde antes del primer \texttt{start()} hasta después del último \texttt{join()}; \texttt{t\_spawn} es el intervalo hasta que el \emph{último} proceso comienza a ejecutarse; \texttt{t\_map} es la ventana entre el inicio del primer trabajador y el fin del mapeo del último (incluye la espera de los procesos más lentos); \texttt{t\_reduce} es la ventana del árbol de comparaciones; y \texttt{t\_other} es el residuo $t_{total} - t_{spawn} - t_{map} - t_{reduce}$. Estas ventanas se solapan entre sí (por ejemplo, el intervalo de \texttt{t\_spawn} termina cuando arranca el último proceso, dentro de la ventana de \texttt{t\_map}), por lo que las barras no forman una partición estricta del tiempo de pared y \texttt{t\_other} puede resultar ligeramente negativo en algunas configuraciones; se interpreta como error de medición de los límites, no como un costo negativo. En las figuras de barras los residuos negativos se acotan a cero para no distorsionar la pila.
-
-La saturación en $p = 32$ es un efecto de contención de recursos (memoria, caché y planificador) y no una propiedad del algoritmo: la eficiencia cae al mismo nivel ($\approx 0.23$) para todos los $q$, es decir, duplicar el trabajo total no recupera la eficiencia y el exceso de procesos se convierte en contención pura. El factor $\kappa(p)$ de la siguiente subsección cuantifica exactamente este fenómeno.
+La saturación en $p = 32$ es un efecto de contención de recursos de hardware compartidos (unidades de ejecución, memoria, caché y frecuencia de reloj), no una propiedad del algoritmo: la eficiencia cae al mismo nivel ($\approx 0.23$) para todos los $q$, es decir, duplicar el trabajo total no recupera la eficiencia y el exceso de procesos se convierte en contención pura. El factor $\kappa(p)$ de la siguiente subsección cuantifica exactamente este fenómeno.
 
 \textbf{Throughput.} El rendimiento en GFLOP/s (Figura~\ref{fig:esc_gflops}) crece con $p$ hasta saturarse en $\approx 1.0 \times 10^{11}$ FLOP/s alrededor de $p = 16$ y retrocede levemente en $p = 32$, confirmando que el límite práctico del nodo se alcanza antes de agotar los 32 procesos solicitados. En el experimento complementario ($n = 2000$) el patrón es similar en términos del nodo: el throughput agregado pasa de $\approx 9.7$ GFLOP/s con $p = 1$ a un máximo de $\approx 90$ GFLOP/s en $p = 16$ y retrocede a $\approx 83$ GFLOP/s en $p = 32$.
 
@@ -515,7 +517,7 @@ La coincidencia del punto de quiebre en $p = 32$ en dos nodos distintos sugiere 
 \label{fig:esc_ef_v2}
 \end{figure}
 
-\textbf{Régimen extremo ($n = 100$).} Para evidenciar el efecto del overhead de forma aún más marcada se realizó una corrida adicional en el mismo nodo del experimento principal, con $n = 100$ y un barrido más amplio de semillas ($q$ hasta 1024). Aquí el costo fijo por proceso es comparable al entrenamiento mismo: con $q = 32$ y $p = 32$, la creación de procesos sola consume $\approx 0.10$ s de un $T_p \approx 0.16$ s (cerca del 60\%), y la eficiencia colapsa a $E_f \approx 0.12$. El comportamiento cualitativo confirma el modelo: para $q = 8$ el tiempo paralelo alcanza su mínimo en $p = 4$ y agregar más procesos es contraproducente, mientras que para $q$ grandes ($q = 1024$) todavía hay trabajo suficiente para que aumentar $p$ siga rindiendo. La Figura~\ref{fig:esc_ef_v3} muestra cómo las curvas de eficiencia se separan claramente por $q$ en este régimen, y la Figura~\ref{fig:esc_desglose_v3} el desglose por fases para $q = 32$, donde el spawn y la sincronización dominan frente a un mapeo de milisegundos.
+\textbf{Régimen extremo ($n = 100$).} Para evidenciar el efecto del overhead de forma aún más marcada se realizó una corrida adicional en el mismo nodo del experimento principal, con $n = 100$ y un barrido más amplio de semillas ($q$ hasta 1024). Aquí el costo fijo por proceso es comparable al entrenamiento mismo: con $q = 32$ y $p = 32$, la creación de procesos sola consume $\approx 0.10$ s de un $T_p \approx 0.16$ s (cerca del 60\%), y la eficiencia colapsa a $E_f \approx 0.12$. El comportamiento cualitativo confirma el modelo: para $q = 8$ el tiempo paralelo alcanza su mínimo en $p = 4$ y agregar más procesos es contraproducente, mientras que para $q$ grandes ($q = 1024$) todavía hay trabajo suficiente para que aumentar $p$ siga rindiendo. La Figura~\ref{fig:esc_ef_v3} muestra cómo las curvas de eficiencia se separan claramente por $q$ en este régimen, y la Figura~\ref{fig:esc_desglose_v3} el desglose por fases para $q = 32$, donde el spawn y la sincronización dominan frente a un mapeo de milisegundos (el significado de cada componente de las barras se define a continuación).
 
 \begin{figure}[H]
 \centering
@@ -530,6 +532,8 @@ La coincidencia del punto de quiebre en $p = 32$ en dos nodos distintos sugiere 
 \caption{Desglose de $T_p$ para $n = 100$, $q = 32$ (régimen extremo): el spawn y la sincronización dominan el tiempo total.}
 \label{fig:esc_desglose_v3}
 \end{figure}
+
+\textbf{Cómo se miden las fases del paralelo.} El código registra marcas de tiempo con \texttt{perf\_counter} en tres puntos por proceso trabajador: al entrar a la función (antes del bucle de entrenamiento), tras la barrera que cierra la fase de mapeo y tras completar el árbol de reducción. A partir de ellas se construyen los componentes de las figuras de barras: \texttt{t\_total} es el tiempo de pared desde antes del primer \texttt{start()} hasta después del último \texttt{join()}; \texttt{t\_spawn} es el intervalo hasta que el \emph{último} proceso comienza a ejecutarse; \texttt{t\_map} es la ventana entre el inicio del primer trabajador y el fin del mapeo del último (incluye la espera de los procesos más lentos); \texttt{t\_reduce} es la ventana del árbol de comparaciones; y \texttt{t\_other} es el residuo $t_{total} - t_{spawn} - t_{map} - t_{reduce}$. Estas ventanas se solapan entre sí (por ejemplo, el intervalo de \texttt{t\_spawn} termina cuando arranca el último proceso, dentro de la ventana de \texttt{t\_map}), por lo que las barras no forman una partición estricta del tiempo de pared y \texttt{t\_other} puede resultar ligeramente negativo en algunas configuraciones; se interpreta como error de medición de los límites, no como un costo negativo. En las figuras de barras los residuos negativos se acotan a cero para no distorsionar la pila.
 
 \subsection{Función de overhead $T_0$ y factor de contención $\kappa(p)$}
 \label{subsec:kappa}
@@ -578,51 +582,15 @@ $p$ & $E_f$ & $T_0/W$ & $T_0$ [s] & $\alpha_p$ & $R^2$ & $p\,t_{spawn}$ [s] & $p
 \label{fig:overhead_w}
 \end{figure}
 
-Tres observaciones se desprenden de la tabla y la figura:
+La tabla y la figura permiten concluir tres cosas:
 
-\begin{enumerate}
-    \item \textbf{El overhead crece en proporción al trabajo.} Para cada $p$, $T_0$ crece un orden de magnitud cuando $W$ crece en la misma proporción (de 7.7 a 112~s en $p=16$), y los puntos de todos los $q$ y $n$ caen sobre una misma recta por el origen ($R^2 \ge 0.99$ para $p \ge 4$). En consecuencia $T_0/W$ prácticamente no cambia entre configuraciones: en el experimento principal varía menos de 0.05 entre los cinco valores de $q$ para cada $p$ (por ejemplo, de 3.24 a 3.31 en $p = 32$). Esto contradice la predicción del modelo sin contención y confirma la de la ecuación~\eqref{eq:overhead_kappa}: el overhead no es un costo fijo de gestión. La pendiente coincide con el factor de contención del ajuste, $\alpha_p \approx \kappa(p)-1$ (Tabla~\ref{tab:ajuste_kappa}), y como $E_f = 1/(1+T_0/W)$, la eficiencia queda fijada por $p$: $E_f \lesssim 1/\kappa(p)$.
-    \item \textbf{La pendiente crece suavemente hasta $p = 16$ y salta en $p = 32$.} Pasa de 0.10 a 0.78 en el rango moderado y llega a $\approx 3.3$ en $p = 32$: cada entrenamiento tarda $\sim$4 veces lo que tardaría en un proceso aislado. El salto tiene una explicación plausible en el nodo \texttt{n005}: tiene 2 sockets de 16 núcleos con 2 hilos por núcleo, y la reserva de 32 CPUs de Slurm equivale a solo 16 núcleos físicos; con $p = 32$ cada núcleo ejecuta dos procesos vía \textit{hyperthreading}, que comparten las unidades de ejecución, el ancho de banda de memoria y la caché de último nivel. Otras causas compatibles son la reducción de frecuencia de reloj al activarse más núcleos y la saturación del ancho de banda de memoria compartido. Que los núcleos que comparten un dominio de contención se repartan el ancho de banda disponible y que el rendimiento por núcleo decrezca al aumentar los activos es un fenómeno documentado en la literatura de arquitecturas multinúcleo \cite{afzal2020bandwidth}; el caso extremo de \textit{hyperthreading} mencionado arriba es una variante del mismo efecto, donde dos procesos comparten las unidades de ejecución de un núcleo. Los datos no permiten separar estas causas, por lo que se plantean como hipótesis; el quiebre similar en \texttt{n003} sugiere que la partición \texttt{standard} comparte esta topología.
-    \item \textbf{El overhead está dentro del mapeo.} Los costos que el modelo sin contención considera, la creación de procesos y la reducción, explican como máximo unos segundos del overhead ($p\,t_{spawn}$ y $p\,t_{reduce}$ en la tabla), y la reducción apenas milisegundos. El resto ocurre durante el entrenamiento: cada modelo se vuelve más lento cuando hay más procesos activos. Por eso el ajuste sin contención obtiene coeficientes sin sentido físico: el término $b\log_2 p$ absorbe una degradación que en realidad es proporcional al trabajo.
-\end{enumerate}
+\begin{itemize}
+    \item \textbf{El overhead crece en proporción al trabajo.} Para cada $p$, $T_0$ crece un orden de magnitud cuando $W$ crece en la misma proporción (de 7.7 a 112~s en $p=16$), y los puntos de todos los $q$ y $n$ caen sobre una misma recta por el origen ($R^2 \ge 0.99$ para $p \ge 4$): la pendiente $\alpha_p$ coincide con $\kappa(p)-1$ (Tablas~\ref{tab:kappa} y~\ref{tab:ajuste_kappa}) y, como $E_f = 1/(1+T_0/W)$, la eficiencia queda fijada por $p$: $E_f \lesssim 1/\kappa(p)$. Esto confirma la ecuación~\eqref{eq:overhead_kappa} y refuta el modelo sin contención.
+    \item \textbf{La pendiente crece suavemente hasta $p = 16$ y salta en $p = 32$.} En el rango moderado cada entrenamiento tarda hasta un 80\% más de lo que tardaría en un proceso aislado; en $p = 32$ tarda unas 4 veces más. El salto tiene una explicación plausible en el nodo \texttt{n005}: tiene 2 sockets de 16 núcleos con 2 hilos por núcleo, y la reserva de 32 CPUs de Slurm equivale a solo 16 núcleos físicos, por lo que con $p = 32$ cada núcleo ejecuta dos procesos vía \textit{hyperthreading} que comparten las unidades de ejecución, el ancho de banda de memoria y la caché. También son compatibles la reducción de frecuencia de reloj al activarse más núcleos y la saturación del ancho de banda compartido; la literatura documenta que el rendimiento por núcleo decrece al compartir dominio de contención \cite{afzal2020bandwidth}. Los datos no permiten separar estas causas, por lo que se plantean como hipótesis.
+    \item \textbf{El overhead está dentro del mapeo.} La creación de procesos y la reducción explican como máximo unos segundos del overhead ($p\,t_{spawn}$ y $p\,t_{reduce}$ en la tabla), y la reducción apenas milisegundos: el resto ocurre durante el entrenamiento, cuando cada modelo se vuelve más lento con más procesos activos.
+\end{itemize}
 
-\textbf{Parte fija del overhead.} La ecuación~\eqref{eq:overhead_kappa} incluye además una parte fija, de creación de procesos y sincronización, que no crece con $W$ y que se amortiza al aumentar el trabajo. Con $n \ge 5000$ es imperceptible frente a la contención, pero aparece al reducir el trabajo por modelo. La Tabla~\ref{tab:overhead_fijo} muestra los dos experimentos donde se observa.
-
-\begin{table}[H]
-\centering
-\small
-\caption{Parte fija del overhead. Arriba: $T_0/W$ con $q = 32$ según $n$ (experimento complementario); baja al crecer $n$ hasta estabilizarse en el valor de contención. Abajo: régimen extremo ($n = 100$), recta $T_0 = \alpha_p W + \beta_p$ ajustada sobre $q$; el intercepto $\beta_p$ es la parte fija y se compara con el costo medido de creación de procesos $p\,t_{spawn}$ (promedio sobre $q$).}
-\label{tab:overhead_fijo}
-\begin{tabular}{lccccccc}
-\toprule
-$n$ & 500 & 1000 & 2000 & 5000 & 10000 & 20000 & 40000 \\
-\midrule
-$T_0/W$, $p = 16$ & 1.30 & 0.99 & 0.88 & 0.77 & 0.78 & 0.69 & 0.75 \\
-$T_0/W$, $p = 32$ & 4.91 & 3.92 & 3.12 & 2.99 & 3.15 & 3.34 & 3.48 \\
-\bottomrule
-\end{tabular}
-
-\vspace{0.6em}
-\begin{tabular}{lccc}
-\toprule
-$n = 100$ & $p = 8$ & $p = 16$ & $p = 32$ \\
-\midrule
-$\beta_p$, parte fija [s]           & 0.46 & 1.34 & 3.85 \\
-$p\,t_{spawn}$ medido [s]           & 0.24 & 0.81 & 3.69 \\
-$\alpha_p$, pendiente               & 0.97 & 1.03 & 1.82 \\
-$T_0/W$ con $q$ mínimo $\to$ máximo & 2.87 $\to$ 0.99 & 3.92 $\to$ 1.09 & 7.07 $\to$ 2.00 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-En el experimento complementario, $T_0/W$ baja de 1.30 a $\approx 0.75$ en $p = 16$ entre $n = 500$ y $n = 5000$, y desde ahí se mantiene: la parte fija ya está amortizada y solo queda la contención. En el régimen extremo, la parte fija estimada es del mismo orden que el costo medido de creación de procesos (3.85~s frente a 3.69~s en $p = 32$), y $T_0/W$ baja de forma marcada al aumentar $q$, que es la señal de un costo fijo que se reparte entre más trabajo. Las pendientes de este régimen no coinciden con las del experimento principal (la pérdida aparece ya en $p = 8$), por lo que se usa solo para estimar la parte fija. Así, cada término de la ecuación~\eqref{eq:overhead_kappa} tiene respaldo experimental: la contención domina con $n$ grande y la parte fija con $n$ pequeño.
-
-\textbf{Forma paramétrica del factor de contención.} Como la degradación es aproximadamente proporcional al trabajo de mapeo, y que la degradación observada sigue un comportamiento similar al logaritmico, puede capturarse con un modelo multiplicativo alternativo:
-\begin{equation}
-T_p^{teo} = a \cdot \left\lceil \frac{q}{p} \right\rceil \cdot n \cdot \left(1 + \gamma \log_2 p\right) + c
-\label{eq:tpeo_kappa}
-\end{equation}
-Ajustado sobre todas las configuraciones del experimento complementario con $p \le 16$ (el régimen sin el salto de contención), se obtiene $\gamma = 0.127$ con $R^2 = 0.999$ y un error relativo medio de $12.9\%$, frente a $63\%$ del modelo aditivo~\eqref{eq:tpeo} sobre los mismos puntos. La interpretación es que cada duplicación del número de procesos activos hace que cada entrenamiento sea $\sim$13\% más lento. Este modelo describe bien el régimen moderado pero, por construcción, no reproduce el salto de $\kappa$ en $p = 32$ (donde el factor crece mucho más rápido que $\log_2 p$); se reporta como evidencia de que la contención tiene una forma suave y predecible antes del quiebre, más que como reemplazo del modelo principal.
+\textbf{Parte fija del overhead.} La ecuación~\eqref{eq:overhead_kappa} incluye además un término fijo de creación de procesos y sincronización, que no crece con $W$ y se amortiza al aumentar el trabajo. Con $n \ge 5000$ es imperceptible frente a la contención, pero aparece al reducir el trabajo por modelo: en el experimento complementario $T_0/W$ baja de 1.30 a $\approx 0.75$ en $p = 16$ entre $n = 500$ y $n = 5000$ y desde ahí se mantiene; en el régimen extremo ($n = 100$) la parte fija estimada es del mismo orden que el costo medido de creación de procesos (3.85~s frente a 3.69~s en $p = 32$) y $T_0/W$ baja al aumentar $q$. Así, la contención domina con $n$ grande y la parte fija con $n$ pequeño.
 
 \textbf{Ajuste del modelo con contención (modelo definitivo).} Siguiendo la forma $T_p \approx \kappa(p)\,T_s/p$, el modelo en segundos con contención es
 \begin{equation}
@@ -660,7 +628,7 @@ Error medio en $E_f$           & 0.121 & 0.008  & 0.155 & 0.035  \\
 \end{tabular}
 \end{table}
 
-El modelo con contención reproduce los tiempos medidos con un error medio de 1.3\% en el experimento principal, frente a 46\% del modelo sin contención. Tiene más parámetros (una recta por $p$), pero la mejora no viene de la cantidad de parámetros sino de la estructura: la pendiente debe crecer con $p$. Esto se comprueba porque, incluso reemplazando los términos fijos $b\log_2 p + c$ por una constante libre por cada $p$ (un ajuste intermedio con pendiente compartida y siete parámetros), el error relativo medio sigue en $\approx 41\%$ y $\approx 83\%$ en los dos experimentos: la flexibilidad adicional en los términos fijos no basta; lo que falta al modelo aditivo es que la pendiente del mapeo cambie con $p$. Los valores de $\kappa(p)$ coinciden en los dos nodos hasta $p = 16$ y también con la pendiente de la función de overhead ($\alpha_p \approx \kappa(p)-1$, Tabla~\ref{tab:kappa}). Las constantes $b_p$ quedan entre $-0.06$ y $0.6$~s y no se interpretan individualmente: con $n \ge 2000$ los costos fijos son tan pequeños frente al mapeo que el ajuste no los identifica con precisión; su peso se analiza con el régimen extremo (Tabla~\ref{tab:overhead_fijo}). La Figura~\ref{fig:esc_tiempos} muestra el desvío entre los tiempos medidos y el modelo PRAM~\eqref{eq:tpeo}, que es lo que motiva este modelo con contención.
+El modelo con contención reproduce los tiempos medidos con un error medio de 1.3\% en el experimento principal, frente a 46\% del modelo sin contención, y sus valores de $\kappa(p)$ coinciden en los dos nodos hasta $p = 16$ y con la pendiente de la función de overhead ($\alpha_p \approx \kappa(p)-1$, Tablas~\ref{tab:kappa} y~\ref{tab:ajuste_kappa}). Las constantes $b_p$ quedan entre $-0.06$ y $0.6$~s y no se interpretan individualmente: con $n \ge 2000$ los costos fijos son tan pequeños frente al mapeo que el ajuste no los identifica con precisión. La Figura~\ref{fig:esc_tiempos} muestra el desvío entre los tiempos medidos y el modelo PRAM~\eqref{eq:tpeo}, que es lo que motiva este modelo con contención.
 
 \textbf{Verificación contra la eficiencia teórica.} La eficiencia que implica cada modelo ajustado, $E_f^{teo} = T_s^{teo}/(p \cdot T_p^{teo})$, puede evaluarse para cada configuración y compararse con la medida. La Tabla~\ref{tab:verif_ef} compara los dos modelos en cuatro configuraciones del experimento principal ($n = 10000$).
 
@@ -701,7 +669,7 @@ Con $q = 32$ fijo, la pregunta central es si aumentar $n$ amortigua los overhead
 \label{fig:imp_ef}
 \end{figure}
 
-El experimento complementario extendió la rejilla hacia datasets pequeños y hace visible el régimen donde el efecto de $n$ sí es pronunciado (Figura~\ref{fig:imp_ef_v2}):
+El experimento complementario extendió la rejilla hacia datasets pequeños y hace visible el régimen donde el efecto de $n$ sí es pronunciado (Figuras~\ref{fig:imp_tiempos_v2} y~\ref{fig:imp_ef_v2}):
 
 \begin{figure}[H]
 \centering
@@ -748,7 +716,7 @@ $n$ \textbackslash{} $p$ & 1 & 2 & 4 & 8 & 16 & 32 \\
 
 \textbf{Régimen de $n$ pequeño (experimento complementario).} Para $n \le 2000$ la eficiencia mejora de forma clara al crecer el dataset: en $p = 16$ pasa de $0.43$ ($n=500$) a $0.53$ ($n=2000$), y en $p = 32$ de $0.17$ a $0.24$. Esto confirma la predicción teórica: cuando cada entrenamiento es muy corto, los costos fijos por proceso (\textit{spawn}, sincronización de barreras, espera de procesos rápidos en la barrera map$\to$reduce) pesan más que el cómputo útil, y agrandar $n$ diluye esa fracción.
 
-\textbf{Régimen de $n$ grande (ambos experimentos).} En cambio, dentro del rango $n \in \{5000, \dots, 40000\}$ la eficiencia es prácticamente plana: las variaciones entre $n = 5000$ y $n = 40000$ son del orden del ruido experimental (desviación estándar de las repeticiones $\sim$1--3\%). Esto define un \textbf{umbral empírico}: el tamaño del dataset corre el piso de eficiencia hacia arriba hasta $n \approx 5000$, y a partir de ahí se satura. Para $p = 8$ el umbral es $\approx 0.63$--$0.68$; para $p = 16$, $\approx 0.55$--$0.59$; y para $p = 32$ permanece clavado en $\approx 0.23$--$0.25$ \emph{independientemente de $n$}. La interpretación es que existen dos cuellos de botella sucesivos: para $n$ pequeño dominan los costos fijos por proceso (amortizables con más datos), pero una vez que el cómputo por modelo es suficientemente grande, el límite lo impone el factor de contención $\kappa(p)$ de la Subsección~\ref{subsec:kappa}, que no depende de $n$ y por tanto no puede compensarse agrandando el dataset.
+\textbf{Régimen de $n$ grande (ambos experimentos).} En cambio, dentro del rango $n \in \{5000, \dots, 40000\}$ la eficiencia es prácticamente plana: las variaciones entre $n = 5000$ y $n = 40000$ son del orden del ruido experimental (desviación estándar de las repeticiones $\sim$1--3\%). Esto define un \textbf{umbral empírico}: el tamaño del dataset corre el piso de eficiencia hacia arriba hasta $n \approx 5000$, y a partir de ahí se satura. Para $p = 8$ el umbral es $\approx 0.63$--$0.68$; para $p = 16$, $\approx 0.52$--$0.59$; y para $p = 32$ permanece clavado en $\approx 0.22$--$0.25$ \emph{independientemente de $n$}. La interpretación es que existen dos cuellos de botella sucesivos: para $n$ pequeño dominan los costos fijos por proceso (amortizables con más datos), pero una vez que el cómputo por modelo es suficientemente grande, el límite lo impone el factor de contención $\kappa(p)$ de la Subsección~\ref{subsec:kappa}, que no depende de $n$ y por tanto no puede compensarse agrandando el dataset.
 
 Este resultado matiza la condición teórica $E_f \to 1$ cuando $n \cdot C \gg \log p$: la cota del modelo PRAM asume procesadores independientes, pero en el clúster real los $p$ procesos compiten por memoria y núcleos físicos, lo que introduce un término de contención que crece con $p$ y no desaparece al aumentar $n$.
 
@@ -761,7 +729,6 @@ Como control de correctitud, todas las configuraciones devolvieron exactitudes c
 \subsection{Mejoras propuestas}
 
 \begin{enumerate}
-    \item \textbf{Afinidad de CPU y asignación de núcleos:} la contención en $p = 32$ sugiere fijar cada proceso a un núcleo físico (\textit{CPU affinity}/\texttt{taskset} o \texttt{sched\_setaffinity}) y verificar cuántas CPUs físicas ---no lógicas--- asigna realmente el job SLURM.
     \item \textbf{Reparto de semillas con más granularidad:} con $q/p$ entero el balance es perfecto en teoría, pero si el costo por semilla varía, un reparto dinámico (cola de semillas con \texttt{Lock} o \textit{work stealing}) mejoraría el desbalance residual dentro de \texttt{wall\_map}.
     \item \textbf{Paralelismo híbrido:} para $p$ grandes podría combinarse el paralelismo por semillas con \textit{multithreading} controlado de BLAS dentro de cada proceso, una vez determinado el número de núcleos físicos útiles.
     \item \textbf{Reducir el costo por operación:} usar \texttt{float32} en lugar de \texttt{float64} duplicaría el ancho de banda útil de memoria y la velocidad de las operaciones vectoriales, atacando directamente el recurso que la contención está saturando; ajustar el tamaño de bloque $B$ a la caché reduciría aún más el tráfico de memoria por modelo.
